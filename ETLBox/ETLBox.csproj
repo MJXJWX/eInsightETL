@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <Configurations>Debug;Release</Configurations>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>It's all in the box! Run all your ETL jobs with this awesome C# class library.
+
+ETLBox is a comprehensive C# class library that is able to manage your whole ETL or ELT. You can use it to run some simple (or complex) sql against your database. You can easily manage your database using some easy-to-use and easy-to-understand objects. You can even create your own dataflow, where data is send from a source to a target and transformed on its way.</Description>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Copyright>Andreas Lennartz</Copyright>
+    <PackageLicenseUrl>https://github.com/roadrunnerlenny/etlbox/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://www.etlbox.net</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/roadrunnerlenny/etlbox</RepositoryUrl>
+    <PackageTags>ETL SSIS ELT Dataflow Controlflow Datapipe</PackageTags>
+    <PackageReleaseNotes>CSVSource: Now you must use the CsvHelper.Configuration.Configuration class to modify the configuration settings. Additionally, POCOs now accept a CSVHelper classmap or CSVHelper attributes that support easy mapping of header names in CSV source files to C# properties.
+
+The CsvHelper configuration and classmap feature is described on https://joshclose.github.io/CsvHelper/
+
+DBDestination: In previous versions, the name of the properties were not matched with the column names of the destination table.  This is fixed now.</PackageReleaseNotes>
+    <Version>1.1.2</Version>
+    <PackageIconUrl>https://raw.githubusercontent.com/roadrunnerlenny/etlbox/master/docs/images/logo_bw.ico</PackageIconUrl>
+    <Authors>Andreas Lennartz</Authors>
+    <Company>ALE</Company>
+    <AssemblyVersion>1.1.2.0</AssemblyVersion>
+    <FileVersion>1.1.2.0</FileVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="12.1.1" />
+    <PackageReference Include="ExcelDataReader" Version="3.4.2" />
+    <PackageReference Include="Microsoft.SqlServer.SqlManagementObjects" Version="140.17283.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="NLog" Version="4.5.11" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="1.4.0" />
+    <PackageReference Include="System.Data.Common" Version="4.3.0" />
+    <PackageReference Include="System.Data.Odbc" Version="4.5.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.6.0" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.9.0" />
+    <PackageReference Include="Unofficial.Microsoft.AnalysisServices.AdomdClientNetCore" Version="15.3.1" />
+  </ItemGroup>
+
+</Project>
