@@ -77,7 +77,7 @@ namespace ETLBoxDemo.src.Manager
             }
             
             necessarySettings.Add("CompanyID", companyId);
-            if (datasettings.Count > 0 && datasettings["ETL_HASNEWETL"] != null)
+            if (datasettings.Count > 0 && datasettings.ContainsKey("ETL_HASNEWETL") && datasettings["ETL_HASNEWETL"] != null)
             {
                 //eInsight OLEDB CRM and eInsight ADO.NET CRM
                 if (datasettings.ContainsKey("SP_ServerName") && datasettings["SP_ServerName"] != null && datasettings.ContainsKey("SP_DatabaseName") && datasettings["SP_DatabaseName"] != null && datasettings.ContainsKey("SP_DBUser") && datasettings["SP_DBUser"] != null && datasettings.ContainsKey("SP_DBPassword") && datasettings["SP_DBPassword"] != null)
