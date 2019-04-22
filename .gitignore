@@ -250,4 +250,9 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+# Mac OS
 .DS_Store
+
+# Visual Studio cache/options directory
+.vscode
