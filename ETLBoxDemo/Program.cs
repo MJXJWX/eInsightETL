@@ -16,11 +16,11 @@ namespace ALE.ETLBoxDemo {
 
             try
             {
-                Dictionary<string, object> necessarySettings = eContactManager.GetNecessarySetting(1338);
+                eContactManager.GetCompanySetting(1338);
 
                 //Customer
                 Console.WriteLine("Starting Customer");
-                CustomerTask CT = new CustomerTask(necessarySettings);
+                CustomerTask CT = new CustomerTask();
                 CT.Start();
                 Console.WriteLine("Customer finished...");
             }
