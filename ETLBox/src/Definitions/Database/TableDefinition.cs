@@ -65,8 +65,8 @@ namespace ALE.ETLBox
             , () => { result.Columns.Add(curCol); }
             , name => curCol.Name = name.ToString()
             , colname => curCol.DataType = colname.ToString()
-            , is_nullable => curCol.AllowNulls = (bool)is_nullable
-            , is_identity => curCol.IsIdentity = (bool)is_identity
+            , is_nullable => curCol.AllowNulls = bool.Parse(is_nullable + "")
+            , is_identity => curCol.IsIdentity = bool.Parse(is_identity + "")
              )
             {
                 DisableLogging = true,

@@ -2,6 +2,7 @@
 using ALE.ETLBox.ConnectionManager;
 using ALE.ETLBox.ControlFlow;
 using ETLBox.src.Toolbox.Database;
+using ETLBoxDemo.src.Manager;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,197 +22,36 @@ namespace ETLBoxDemo.src.Customer
         {
             //Get Last CheckTime
             string strConnectionString = (string)dictionarySettings["User::streInsightCRMCONNECTSTRING"];
-            string sqlGetLastCheckTime = @"SELECT ISNULL(MAX(DriverExecutionDate), DATEADD(yy,-10,GETDATE())) AS LastCheckTime FROM ETL_PACKAGE_LOG WHERE Component = 'D_CUSTOMER' AND EndTime IS NOT NULL";
-            List<string> sqlGetLastCheckTimeList = SQLHelper.GetDbValues(strConnectionString, "sqlGetLastCheckTime", sqlGetLastCheckTime, null);
+            string lastCheckTime = CRMDBManager.GetLastCheckTime(strConnectionString, "D_CUSTOMER");
 
             //Truncate Table ETL_TEMP_Profiles
             string strPMSConnectionString = (string)dictionarySettings["User::strPMSCONNECTSTRING"];
-            string sqlTruncateTableETL_TEMP_Profiles = @"Truncate Table ETL_TEMP_Profiles";
-            SQLHelper.TruncateTable(strPMSConnectionString, "truncateTable", sqlTruncateTableETL_TEMP_Profiles);
+            SQLHelper.TruncateTable(strPMSConnectionString, "TruncateETLProfilesTEMPTable", "ETL_TEMP_Profiles");
 
             //TRUNCATE TABLE ETL_TEMP_PROFILES_D_CUSTOMER;
             //TRUNCATE TABLE ETL_TEMP_PROFILES_D_CUSTOMER_INSERT;
             //TRUNCATE TABLE ETL_TEMP_PROFILES_D_CUSTOMER_UPDATE;
             //TRUNCATE TABLE ETL_TEMP_D_CUSTOMER_For_Email;
-            string sqlTruncateTableETL_TEMP_PROFILES_D_CUSTOMER = "TRUNCATE TABLE ETL_TEMP_PROFILES_D_CUSTOMER";
-            string sqlTruncateTableETL_TEMP_PROFILES_D_CUSTOMER_INSERT = "TRUNCATE TABLE ETL_TEMP_PROFILES_D_CUSTOMER_INSERT";
-            string sqlTruncateTableETL_TEMP_PROFILES_D_CUSTOMER_UPDATE = "TRUNCATE TABLE ETL_TEMP_PROFILES_D_CUSTOMER_UPDATE";
-            string sqlTruncateTableETL_TEMP_D_CUSTOMER_For_Email = "TRUNCATE TABLE ETL_TEMP_D_CUSTOMER_For_Email";
-            SQLHelper.TruncateTable(strPMSConnectionString, "truncateTable", sqlTruncateTableETL_TEMP_PROFILES_D_CUSTOMER, sqlTruncateTableETL_TEMP_PROFILES_D_CUSTOMER_INSERT, sqlTruncateTableETL_TEMP_PROFILES_D_CUSTOMER_UPDATE, sqlTruncateTableETL_TEMP_D_CUSTOMER_For_Email);
+            //SQLHelper.TruncateTable(strPMSConnectionString, "TruncateETLCustomerTempTable", "ETL_TEMP_PROFILES_D_CUSTOMER", "ETL_TEMP_PROFILES_D_CUSTOMER_INSERT", "ETL_TEMP_PROFILES_D_CUSTOMER_UPDATE", "ETL_TEMP_D_CUSTOMER_For_Email");
 
-            if ("7375".Equals((string)dictionarySettings["CompanyID"]))
+            var companyId = dictionarySettings["CompanyID"] + "";
+            if ("7375".Equals(companyId))
             {
                 // Create Source Code For Open Table
-                string sqlCreateSourceCodeForOpenTable = @"DECLARE @propertycode VARCHAR(50)
-                                                        SET @propertycode = (SELECT TOP 1 propertycode FROM dbo.D_PROPERTY WHERE CenAdminCompanyID = 7375)
-
-                                                        IF NOT EXISTS ( SELECT  1
-                                                                        FROM    dbo.L_DATA_SOURCE_CODE
-                                                                        WHERE   SourceName = 'CLIENT'
-                                                                                AND SubSourceName = 'Open Table' ) 
-                                                            BEGIN
-                                                                INSERT  dbo.L_DATA_SOURCE_CODE
-                                                                        (
-                                                                          PropertyCode,
-                                                                          SourceName,
-                                                                          SubSourceName,
-                                                                          SourceNameDes,
-                                                                          SubSourceNameDes,
-                                                                          IsShowdropdown,
-                                                                          DedupPriority,
-                                                                          ETLProcess 
-		        
-                                                                        )
-                                                                VALUES  (
-                                                                          @propertycode, -- PropertyCode - varchar(20)
-                                                                          'CLIENT', -- SourceName - nvarchar(100)
-                                                                          'Open Table', -- SubSourceName - nvarchar(100)
-                                                                          '', -- SourceNameDes - nvarchar(200)
-                                                                          '', -- SubSourceNameDes - nvarchar(200)
-                                                                          1, -- IsShowdropdown - bit
-                                                                          99, -- DedupPriority - int
-                                                                          99  -- ETLProcess - int
-		        
-                                                                        )
-                                                                SELECT TOP 1 SourceID
-                                                                FROM    dbo.L_DATA_SOURCE_CODE
-                                                                WHERE   SourceName = 'CLIENT'
-                                                                        AND SubSourceName = 'Open Table'             
-                                                            END
-                                                        ELSE 
-                                                            SELECT  TOP 1 SourceID
-                                                            FROM    dbo.L_DATA_SOURCE_CODE
-                                                            WHERE   SourceName = 'CLIENT'
-                                                                    AND SubSourceName = 'Open Table'
-                                                           ";
-
-                List<string> sqlCreateSourceCodeForOpenTableList = SQLHelper.GetDbValues(strConnectionString, "sqlCreateSourceCodeForOpenTable", sqlCreateSourceCodeForOpenTable, null);
+                string openTableSourceCode = CRMDBManager.CreateSourceCode(strConnectionString, companyId, "CLIENT", "Open Table", 1, 99, 99);//SQLHelper.GetDbValues(strConnectionString, "sqlCreateSourceCodeForOpenTable", sqlCreateSourceCodeForOpenTable, null);
 
                 // Create Source Code For Counter Point
-                string sqlCreateSourceCodeForCounterPoint = @"DECLARE @propertycode VARCHAR(50)
-                                SET @propertycode = (SELECT TOP 1 propertycode FROM dbo.D_PROPERTY WHERE CenAdminCompanyID = ?)
-
-                                IF NOT EXISTS ( SELECT  1
-                                                FROM    dbo.L_DATA_SOURCE_CODE
-                                                WHERE   SourceName = 'CLIENT'
-                                                        AND SubSourceName = 'Counter Point' ) 
-                                    BEGIN
-                                        INSERT  dbo.L_DATA_SOURCE_CODE
-                                                (
-                                                  PropertyCode,
-                                                  SourceName,
-                                                  SubSourceName,
-                                                  SourceNameDes,
-                                                  SubSourceNameDes,
-                                                  IsShowdropdown,
-                                                  DedupPriority,
-                                                  ETLProcess 
-		        
-                                                )
-                                        VALUES  (
-                                                  @propertycode, -- PropertyCode - varchar(20)
-                                                  'CLIENT', -- SourceName - nvarchar(100)
-                                                  'Counter Point', -- SubSourceName - nvarchar(100)
-                                                  '', -- SourceNameDes - nvarchar(200)
-                                                  '', -- SubSourceNameDes - nvarchar(200)
-                                                  1, -- IsShowdropdown - bit
-                                                  99, -- DedupPriority - int
-                                                  99  -- ETLProcess - int
-		        
-                                                )
-                                        SELECT TOP 1 SourceID
-                                        FROM    dbo.L_DATA_SOURCE_CODE
-                                        WHERE   SourceName = 'CLIENT'
-                                                AND SubSourceName = 'Counter Point'             
-                                    END
-                                ELSE 
-                                    SELECT  TOP 1 SourceID
-                                    FROM    dbo.L_DATA_SOURCE_CODE
-                                    WHERE   SourceName = 'CLIENT'
-                                            AND SubSourceName = 'Counter Point'
-                                   ";
-                List<string> sqlCreateSourceCodeForCounterPointList = SQLHelper.GetDbValues(strConnectionString, "sqlCreateSourceCodeForCounterPoint", sqlCreateSourceCodeForCounterPoint, null);
+                string counterPointSourceCode = CRMDBManager.CreateSourceCode(strConnectionString, companyId, "CLIENT", "Counter Point", 1, 99, 99);//SQLHelper.GetDbValues(strConnectionString, "sqlCreateSourceCodeForCounterPoint", sqlCreateSourceCodeForCounterPoint, null);
             }
 
             //create source code
-            string sqlCreateSourceCode = @"DECLARE @propertycode VARCHAR(50)
-                                        SET @propertycode = (SELECT TOP 1 propertycode FROM dbo.D_PROPERTY WHERE CenAdminCompanyID = ?)
-
-                                        IF NOT EXISTS ( SELECT  1
-                                                        FROM    dbo.L_DATA_SOURCE_CODE
-                                                        WHERE   SourceName = 'PMS'
-                                                                AND SubSourceName = 'PMS' ) 
-                                            BEGIN
-                                                INSERT  dbo.L_DATA_SOURCE_CODE
-                                                        (
-                                                          PropertyCode,
-                                                          SourceName,
-                                                          SubSourceName,
-                                                          SourceNameDes,
-                                                          SubSourceNameDes,
-                                                          IsShowdropdown,
-                                                          DedupPriority,
-                                                          ETLProcess 
-		        
-                                                        )
-                                                VALUES  (
-                                                          @propertycode, -- PropertyCode - varchar(20)
-                                                          'PMS', -- SourceName - nvarchar(100)
-                                                          'PMS', -- SubSourceName - nvarchar(100)
-                                                          '', -- SourceNameDes - nvarchar(200)
-                                                          '', -- SubSourceNameDes - nvarchar(200)
-                                                          0, -- IsShowdropdown - bit
-                                                          1, -- DedupPriority - int
-                                                          1  -- ETLProcess - int
-		        
-                                                        )
-                                                SELECT TOP 1 SourceID
-                                                FROM    dbo.L_DATA_SOURCE_CODE
-                                                WHERE   SourceName = 'PMS'
-                                                        AND SubSourceName = 'PMS'             
-                                            END
-                                        ELSE 
-                                            SELECT  TOP 1 SourceID
-                                            FROM    dbo.L_DATA_SOURCE_CODE
-                                            WHERE   SourceName = 'PMS'
-                                                    AND SubSourceName = 'PMS'
-                                           ";
-            List<string> sqlCreateSourceCodeList = SQLHelper.GetDbValues(strConnectionString, "sqlCreateSourceCode", sqlCreateSourceCode, null);
+            string pmsSourceCode = CRMDBManager.CreateSourceCode(strConnectionString, companyId, "PMS", "PMS", 0, 1, 1);//SQLHelper.GetDbValues(strConnectionString, "sqlCreateSourceCode", sqlCreateSourceCode, null);
 
             // Move ProfileDocument
-            string sqlGetDataFromProfileDocument = @"SELECT Id ,
-                                                       FK_Profile ,
-                                                       DocType ,
-                                                       DocSource ,
-                                                       CodeOnDocument ,
-                                                       DocNotes ,
-                                                       DocId_PII ,
-                                                       NameOnDocument_PII ,
-                                                       DocumentBody_PII ,
-                                                       NationalityOnDocument ,
-                                                       EffectiveDate ,
-                                                       ExpirationDate ,
-                                                       PII_StoredAs ,
-                                                       PII_Algorithm ,
-                                                       PII_Key ,
-                                                       PII_KeyId ,
-                                                       Issuer ,
-                                                       IssuerAddress1 ,
-                                                       IssuerAddress2 ,
-                                                       IssuerCity ,
-                                                       IssuerStateProv ,
-                                                       IssuerPostalCode ,
-                                                       IssuerCountry ,
-                                                       IsPrimary ,
-                                                       InactiveDate ,
-                                                       DateCreated ,
-                                                       LastUpdated FROM dbo.ProfileDocuments With(Nolock)
-                                                WHERE (LastUpdated >= '2012-03-12 20:50:00' OR DateCreated >= '2012-03-12 20:50:00') 
-                                                AND LastUpdated <= '2012-01-24 11:06:00' and DateCreated <= '2012-01-24 11:06:00'";
-            List<string> sqlGetDataFromProfileDocumentList = SQLHelper.GetDbValues(strPMSConnectionString, "sqlGetDataFromProfileDocument", sqlGetDataFromProfileDocument, null);
-            for (int i = 0; i < sqlGetDataFromProfileDocumentList.Count; i++)
+            List<string> profileDocuments = PMSDBManager.GetDataFromProfileDocuments(strPMSConnectionString);
+            for (int i = 0; i < profileDocuments.Count; i++)
             {
-                String[] strArr = sqlGetDataFromProfileDocumentList[i].Split(",");
+                String[] strArr = profileDocuments[i].Split(",");
                 string sqlInsertOrUpdateTablePMS_ProfileDocuments = @"IF NOT EXISTS (SELECT 1 FROM dbo.PMS_ProfileDocuments WHERE Id = @Id)
                                                                                     INSERT INTO dbo.PMS_ProfileDocuments (Id,FK_Profile,DocType,DocSource,CodeOnDocument,
                                                                                     DocNotes,DocId_PII,NameOnDocument_PII,DocumentBody_PII,NationalityOnDocument,EffectiveDate,ExpirationDate,PII_StoredAs,PII_Algorithm,PII_Key,PII_KeyId,Issuer ,

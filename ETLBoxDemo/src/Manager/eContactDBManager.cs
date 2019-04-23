@@ -7,63 +7,60 @@ using System.Text;
 
 namespace ETLBoxDemo.src.Manager
 {
-    public static class eContactManager
+    public class eContactDBManager
     {
-        public static string SQL_GeteContactSettings()
-        {
-            return @"SELECT DISTINCT SettingName,SettingValue
-                                FROM dbo.eContact_Settings WITH (NOLOCK)
-                                WHERE (settingname LIKE 'ETL%' OR settingname IN (
-                                    'SP_DatabaseName'
-                                    ,'SP_ServerName'
-                                    ,'SP_DBUser'
-                                    ,'SP_DBPassword'
-                                    ,'ETL_AUTODEDUPE'
-                                    ,'ETL_HASMEMBERSHIPS'
-                                    ,'ETL_PMSDEDUPE'
-                                    ,'ETL_ECONCIERGEEXPORT'
-                                    ,'ETL_HASUNIFOCUSDATA'
-									,'ETL_HASMDSDATA'
-                                    ,'ETL_HASDOB'
-                                    ,'ETL_AUTOMATICALLY_MAP_MARKET_SEG'
-                                    ,'ETL_HASTRANSACTIONSDATA'
-                                    ,'ETL_HASCENRESWEBFORMS'
-                                    ,'ETL_HASCENRESOMNI'
-                                    ,'ETL_HASCONDODATA'
-                                    ,'ETL_DEDUPE'
-                                    ,'ETL_HASCLUBESSENTIALSDATA'
-                                    ,'ETL_HASVENGADATA'
-                                    ,'ETL_VENGASERVERNAME'
-                                    ,'ETL_VENGADATABASENAME'
-                                    ,'ETL_VENGADBUSER'
-                                    ,'ETL_VENGADBPASSWORD'
-                                    ,'ETL_HASSIRIUSWAREDATA'
-                                    ,'ETL_HASMEMBERSHIPSDATA'
-                                    ,'ETL_ECONCIERGE_TYPE'
-                                    ,'ETL_HASVOUCHERSSDATA'
-                                    ,'ETL_HAS_EC_SURVEY_RESPONSE_DATA'
-                                    ,'HAS_PMSMemberships'
-                                    )) AND CompanyID = @CompanyID
+        public static readonly string SQL_GeteContactSettings =
+    @"SELECT DISTINCT SettingName,SettingValue
+            FROM dbo.eContact_Settings WITH (NOLOCK)
+            WHERE (settingname LIKE 'ETL%' OR settingname IN (
+                'SP_DatabaseName'
+                ,'SP_ServerName'
+                ,'SP_DBUser'
+                ,'SP_DBPassword'
+                ,'ETL_AUTODEDUPE'
+                ,'ETL_HASMEMBERSHIPS'
+                ,'ETL_PMSDEDUPE'
+                ,'ETL_ECONCIERGEEXPORT'
+                ,'ETL_HASUNIFOCUSDATA'
+				,'ETL_HASMDSDATA'
+                ,'ETL_HASDOB'
+                ,'ETL_AUTOMATICALLY_MAP_MARKET_SEG'
+                ,'ETL_HASTRANSACTIONSDATA'
+                ,'ETL_HASCENRESWEBFORMS'
+                ,'ETL_HASCENRESOMNI'
+                ,'ETL_HASCONDODATA'
+                ,'ETL_DEDUPE'
+                ,'ETL_HASCLUBESSENTIALSDATA'
+                ,'ETL_HASVENGADATA'
+                ,'ETL_VENGASERVERNAME'
+                ,'ETL_VENGADATABASENAME'
+                ,'ETL_VENGADBUSER'
+                ,'ETL_VENGADBPASSWORD'
+                ,'ETL_HASSIRIUSWAREDATA'
+                ,'ETL_HASMEMBERSHIPSDATA'
+                ,'ETL_ECONCIERGE_TYPE'
+                ,'ETL_HASVOUCHERSSDATA'
+                ,'ETL_HAS_EC_SURVEY_RESPONSE_DATA'
+                ,'HAS_PMSMemberships'
+                )) AND CompanyID = @CompanyID
 
-                                UNION
+            UNION
 
-                                SELECT DISTINCT SettingName, SettingValue
-                                FROM dbo.eContact_ParentCompany_Settings AS a WITH (NOLOCK)
-                                INNER JOIN dbo.Company AS c WITH (NOLOCK) 
-                                    ON c.ParentCompany = a.CompanyID
-                                WHERE a.SettingName IN ('HasPropertyUnsubscribe', 'HasStayActivities', 'HasStayOneToManyStayDetailHeader', 'BringRateTypeDescFromCenRes', 'ETL_Has_RelatedTravelers_Info', 'HasBrandUnsubscribe')
-                                AND c.CompanyID = @CompanyID";
-        }
+            SELECT DISTINCT SettingName, SettingValue
+            FROM dbo.eContact_ParentCompany_Settings AS a WITH (NOLOCK)
+            INNER JOIN dbo.Company AS c WITH (NOLOCK) 
+                ON c.ParentCompany = a.CompanyID
+            WHERE a.SettingName IN ('HasPropertyUnsubscribe', 'HasStayActivities', 'HasStayOneToManyStayDetailHeader', 'BringRateTypeDescFromCenRes', 'ETL_Has_RelatedTravelers_Info', 'HasBrandUnsubscribe')
+            AND c.CompanyID = @CompanyID";
 
         public static Dictionary<string, object> GetNecessarySetting(int companyId)
         {
             Dictionary<string, object> necessarySettings = new Dictionary<string, object>();
-            var queryString = SQL_GeteContactSettings();
             string eContactConnectionString = System.Configuration.ConfigurationManager.AppSettings["econtact-db-sql"];
             ControlFlow.CurrentDbConnection = new SqlConnectionManager(new ConnectionString(eContactConnectionString));
             List<string> DatabaseValues = new List<string>();
             List<QueryParameter> parameter = new List<QueryParameter>() { new QueryParameter("CompanyID", "int", companyId) };
-            new SqlTask("Select", queryString, parameter)
+            new SqlTask("Select", SQL_GeteContactSettings, parameter)
             {
                 Actions = new List<Action<object>>() {
                     n => DatabaseValues.Add((string)n)
@@ -75,7 +72,7 @@ namespace ETLBoxDemo.src.Manager
                 String[] strArr = DatabaseValues[i].Split(",");
                 datasettings.Add(strArr[0], strArr[1]);
             }
-            
+
             necessarySettings.Add("CompanyID", companyId);
             if (datasettings.Count > 0 && datasettings.ContainsKey("ETL_HASNEWETL") && datasettings["ETL_HASNEWETL"] != null)
             {
@@ -166,7 +163,7 @@ namespace ETLBoxDemo.src.Manager
                 //check if property has econcierge type
                 datasettings.TryGetValue("ETL_ECONCIERGE_TYPE", out tempValue);
                 necessarySettings.Add("User::streConciergeType", tempValue ?? "1.0");
-                
+
                 //check if client has HasPropertyUnsubscribe enabled
                 datasettings.TryGetValue("HasPropertyUnsubscribe", out tempValue);
                 necessarySettings.Add("User::HasPropertyUnsubscribe", (tempValue + "").ToUpper() == "Y" ? 1 : 0);
@@ -178,24 +175,24 @@ namespace ETLBoxDemo.src.Manager
                 //check if client has ETL_HASVOUCHERSSDATA enabled
                 datasettings.TryGetValue("ETL_HASVOUCHERSSDATA", out tempValue);
                 necessarySettings.Add("User::intHasVouchersData", (tempValue + "").ToUpper() == "Y" ? 1 : 0);
-                
+
                 //check if client has ETL_HAS_EC_SURVEY_RESPONSE_DATA enabled
                 datasettings.TryGetValue("ETL_HAS_EC_SURVEY_RESPONSE_DATA", out tempValue);
                 necessarySettings.Add("User::intHASECSURVEYRESPONSEDATA", (tempValue + "").ToUpper() == "Y" ? 1 : 0);
-                
+
 
                 //check if client has HasStayActivities enabled
                 datasettings.TryGetValue("HasStayActivities", out tempValue);
                 necessarySettings.Add("User::HasStayActivities", (tempValue + "").ToUpper() == "1" ? 1 : 0);
-                
+
                 //check if client has HasStayOneToManyStayDetailHeader enabled
                 datasettings.TryGetValue("HasStayOneToManyStayDetailHeader", out tempValue);
                 necessarySettings.Add("User::HasStayOneToManyStayDetailHeader", (tempValue + "").ToUpper() == "1" ? 1 : 0);
-                
+
                 //check if client has ETL_Has_RelatedTravelers_Info enabled
                 datasettings.TryGetValue("ETL_Has_RelatedTravelers_Info", out tempValue);
                 necessarySettings.Add("User::ETL_Has_RelatedTravelers_Info", (tempValue + "").ToUpper() == "1" ? 1 : 0);
-                
+
                 //check if property has MDS data
                 if (datasettings.ContainsKey("ETL_HASMDSDATA"))
                 {
@@ -216,7 +213,7 @@ namespace ETLBoxDemo.src.Manager
                 }
                 else
                 {
-                    necessarySettings.Add("User::HasMDSData", 0); 
+                    necessarySettings.Add("User::HasMDSData", 0);
                     necessarySettings.Add("User::strOLEDBMDSCONNECTSTRING", string.Empty);
                 }
 
@@ -240,7 +237,7 @@ namespace ETLBoxDemo.src.Manager
                 }
                 else
                 {
-                    necessarySettings.Add("User::HasClubEssentialsData", 0); 
+                    necessarySettings.Add("User::HasClubEssentialsData", 0);
                     necessarySettings.Add("User::strOLEDBCLUBESSENTIALSCONNECTSTRING", string.Empty);
                 }
 
@@ -264,7 +261,7 @@ namespace ETLBoxDemo.src.Manager
                 }
                 else
                 {
-                    necessarySettings.Add("User::HasUNIFOCUSData", 0); 
+                    necessarySettings.Add("User::HasUNIFOCUSData", 0);
                     necessarySettings.Add("User::strOLEDBUNIFOCUSCONNECTSTRING", string.Empty);
                 }
 
@@ -288,7 +285,7 @@ namespace ETLBoxDemo.src.Manager
                 }
                 else
                 {
-                    necessarySettings.Add("User::HasVengaData", 0); 
+                    necessarySettings.Add("User::HasVengaData", 0);
                     necessarySettings.Add("User::strOLEDBVengaCONNECTSTRING", string.Empty);
                 }
 
@@ -299,7 +296,7 @@ namespace ETLBoxDemo.src.Manager
                 //check if property has A flag ETL_AUTOMATICALLY_MAP_MARKET_SEG set to 1
                 datasettings.TryGetValue("ETL_AUTOMATICALLY_MAP_MARKET_SEG", out tempValue);
                 necessarySettings.Add("User::AUTOMATICALLY_MAP_MARKET_SEG", Int32.Parse(tempValue ?? "0"));
-                
+
                 //check if property has A flag ETL_HASTRANSACTIONSDATA set to 1
                 datasettings.TryGetValue("ETL_HASTRANSACTIONSDATA", out tempValue);
                 necessarySettings.Add("User::HasTransactionsData", Int32.Parse(tempValue ?? "0"));
@@ -324,7 +321,7 @@ namespace ETLBoxDemo.src.Manager
                 }
                 else
                 {
-                    necessarySettings.Add("User::HasCenResWebFormsData", 0); 
+                    necessarySettings.Add("User::HasCenResWebFormsData", 0);
                     necessarySettings.Add("User::strOLEDBCENRESWEBFORMSCONNECTSTRING", string.Empty);
                 }
 
@@ -348,7 +345,7 @@ namespace ETLBoxDemo.src.Manager
                 }
                 else
                 {
-                    necessarySettings.Add("User::HasCenResOmniData", 0); 
+                    necessarySettings.Add("User::HasCenResOmniData", 0);
                     necessarySettings.Add("User::strOLEDBCENRESOMNICONNECTSTRING", string.Empty);
                 }
 
@@ -372,26 +369,26 @@ namespace ETLBoxDemo.src.Manager
                 }
                 else
                 {
-                    necessarySettings.Add("User::HasCONDOData", 0); 
+                    necessarySettings.Add("User::HasCONDOData", 0);
                     necessarySettings.Add("User::strOLEDBCONDOCONNECTSTRING", string.Empty);
                 }
 
                 //Setting if enalbed then ETL will save the rate type description from CenRes database reservations_image table to eInsight database L_Data_Dictionary table for each property 
                 datasettings.TryGetValue("BringRateTypeDescFromCenRes", out tempValue);
                 necessarySettings.Add("User::BringRateTypeDescFromCenRes", Int32.Parse(tempValue ?? "0"));
-                
+
                 //check if property has sirius ware data
                 datasettings.TryGetValue("ETL_HASSIRIUSWAREDATA", out tempValue);
                 necessarySettings.Add("User::ETL_HASSiriusWareData", Int32.Parse(tempValue ?? "0"));
-                
+
                 //check if property has membership data (This is not same as what we have done for Trump)
                 datasettings.TryGetValue("ETL_HASMEMBERSHIPSDATA", out tempValue);
                 necessarySettings.Add("User::ETL_HASMEMBERSHIPSDATA", Int32.Parse(tempValue ?? "0"));
-                
+
                 //check if property has pms membership data
                 datasettings.TryGetValue("HAS_PMSMemberships", out tempValue);
                 necessarySettings.Add("User::HAS_PMSMemberships", Int32.Parse(tempValue ?? "0"));
-                
+
                 //necessarySettings.Add("User::HasMemberships", string.Format(datasettings["ETL_HASMEMBERSHIPS"]);
 
                 //OLD
@@ -407,6 +404,5 @@ namespace ETLBoxDemo.src.Manager
 
             return necessarySettings;
         }
-
     }
 }

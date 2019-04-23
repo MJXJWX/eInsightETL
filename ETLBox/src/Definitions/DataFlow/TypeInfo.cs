@@ -13,12 +13,32 @@ namespace ALE.ETLBox.DataFlow
         internal int PropertyLength { get; set; }
         internal bool IsArray { get; set; } = true;
 
+        internal TypeInfo()
+        {
+            PropertyNames = new List<string>();
+            PropertyIndex = new Dictionary<string, int>();
+        }
+
+        internal TypeInfo(List<string> properties)
+        {
+            PropertyNames = new List<string>();
+            PropertyIndex = new Dictionary<string, int>();
+            PropertyLength = properties.Count();
+            int index = 0;
+            foreach (var propInfo in properties)
+            {
+                PropertyNames.Add(propInfo);
+                PropertyIndex.Add(propInfo, index++);
+            }
+        }
+
         internal TypeInfo(Type typ)
         {
             PropertyNames = new List<string>();
             PropertyIndex = new Dictionary<string, int>();
             GatherTypeInfos(typ);
         }
+
         private void GatherTypeInfos(Type typ)
         {
             IsArray = typ.IsArray;

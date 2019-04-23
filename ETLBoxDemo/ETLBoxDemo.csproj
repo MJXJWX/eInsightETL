@@ -6,9 +6,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="src\Customer\DFT_MoveProfileDocument.cs" />
+    <Compile Remove="src\Utility\Class1.cs" />
+    <Compile Remove="src\Utility\CreateNewClassByDt.cs" />
+    <Compile Remove="src\Utility\DataFlowTaskHelper.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
+    <PackageReference Include="NLog.Config" Version="4.6.2" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
   </ItemGroup>
 
@@ -17,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="nlog.config">
+    <None Update="Nlog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="src\DataFlow\DemoData.csv">

@@ -154,19 +154,20 @@ namespace ALE.ETLBox.ControlFlow
                         {
                             if (!reader.IsDBNull(i))
                             {
-                                string value = "";
-                                for (int j = 0; j < reader.FieldCount; j++)
-                                {
-                                    if (String.IsNullOrEmpty(value))
-                                    {
-                                        value = reader.GetValue(j).ToString();
-                                    }
-                                    else
-                                    {
-                                        value += "," + reader.GetValue(j).ToString();
-                                    }
+                                string value = reader.GetValue(i).ToString();
+                                //for (int j = 0; j < reader.FieldCount; j++)
+                                //{
+                                //    if (String.IsNullOrEmpty(value))
+                                //    {
+                                //        value = reader.GetValue(j).ToString();
+                                //    }
+                                //    else
+                                //    {
+                                //        value += "," + reader.GetValue(j).ToString();
+                                //    }
 
-                                }
+                                //}
+
                                 Actions?[i]?.Invoke(value);
                             }
                             else

@@ -42,30 +42,21 @@ namespace ETLBox.src.Toolbox.Database
             ControlFlow.CurrentDbConnection = new SqlConnectionManager(new ConnectionString(strConnectionString));
             new SqlTask(taskName, strSql, parameter).ExecuteNonQuery();
         }
-
-        public static void TruncateTable(String strConnectionString, String taskName, String strSql)
+        
+        public static void TruncateTable(String strConnectionString, String taskName, params string[] tableNames)
         {
             ControlFlow.CurrentDbConnection = new SqlConnectionManager(new ConnectionString(strConnectionString));
-            new SqlTask(taskName, strSql).ExecuteNonQuery();
-        }
-        public static void TruncateTable(String strConnectionString, String taskName, String strSql1, String strSql2, String strSql3, String strSql4)
-        {
-            ControlFlow.CurrentDbConnection = new SqlConnectionManager(new ConnectionString(strConnectionString));
-            if (!String.IsNullOrEmpty(strSql1))
+            StringBuilder sql = new StringBuilder();
+            foreach(var tableName in tableNames)
             {
-                new SqlTask(taskName, strSql1).ExecuteNonQuery();
+                if (!string.IsNullOrEmpty(tableName))
+                {
+                    sql.Append($"Truncate Table {tableName}; ");
+                }
             }
-            if (!String.IsNullOrEmpty(strSql2))
+            if (!String.IsNullOrEmpty(sql.ToString()))
             {
-                new SqlTask(taskName, strSql2).ExecuteNonQuery();
-            }
-            if (!String.IsNullOrEmpty(strSql3))
-            {
-                new SqlTask(taskName, strSql3).ExecuteNonQuery();
-            }
-            if (!String.IsNullOrEmpty(strSql4))
-            {
-                new SqlTask(taskName, strSql4).ExecuteNonQuery();
+                new SqlTask(taskName, sql.ToString()).ExecuteNonQuery();
             }
         }
     }
