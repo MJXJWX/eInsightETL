@@ -14,6 +14,9 @@ namespace ETLBoxDemo.src.Customer
     public class CustomerTask
     {
         private Dictionary<string, object> dictionarySettings;
+        public CustomerTask()
+        {
+        }
         public CustomerTask(Dictionary<string, object> dictionarySettings)
         {
             this.dictionarySettings = dictionarySettings;

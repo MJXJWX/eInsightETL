@@ -18,7 +18,7 @@ namespace ALE.ETLBoxDemo {
 
             try
             {
-                eContactManager.GetCompanySetting(1338);
+                eContactDBManager.GetCompanySetting(1338);
                 string sC = "data source=QHB-CRMDB001.centralservices.local;initial catalog=eInsightCRM_OceanProperties_QA;uid=eInsightCRM_eContact_OceanProperties;pwd=Tv3CxdZwA%9;MultipleActiveResultSets=True";
                 string dC = "data source=localhost;initial catalog=eInsightCRM_AMResorts_QA;uid=sa;pwd=123456;MultipleActiveResultSets=True";
 
