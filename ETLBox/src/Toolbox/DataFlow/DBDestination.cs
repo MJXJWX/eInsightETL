@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks.Dataflow;
+using static ALE.ETLBox.ControlFlow.DbTask;
 
 namespace ALE.ETLBox.DataFlow {
     /// <summary>
@@ -39,6 +40,10 @@ namespace ALE.ETLBox.DataFlow {
         internal ActionBlock<TInput[]> TargetAction { get; set; }
         NLog.Logger NLogger { get; set; }
         TypeInfo TypeInfo { get; set; }
+
+        ActionType ActionType { get; set; }
+        List<string> Keys { get; set; }
+
         public DBDestination() {
             InitObjects(DEFAULT_BATCH_SIZE);
 
@@ -54,8 +59,10 @@ namespace ALE.ETLBox.DataFlow {
             InitObjects(DEFAULT_BATCH_SIZE);
         }
 
-        public DBDestination(string tableName) {
+        public DBDestination(string tableName, ActionType actionType = ActionType.Insert, List<string> keys = null) {
+            ActionType = actionType;
             TableName = tableName;
+            Keys = keys;
             InitObjects(DEFAULT_BATCH_SIZE);
         }
 
@@ -92,7 +99,22 @@ namespace ALE.ETLBox.DataFlow {
                 data = BeforeBatchWrite.Invoke(data);
             TableData<TInput> td = new TableData<TInput>(DestinationTableDefinition, DEFAULT_BATCH_SIZE);
             td.Rows = ConvertRows(data);
-            new SqlTask(this, $"Execute Bulk insert into {DestinationTableDefinition.Name}").BulkInsert(td, DestinationTableDefinition.Name);
+            switch (ActionType)
+            {
+                case ActionType.Insert:
+                    new SqlTask(this, $"Execute Bulk Insert into {DestinationTableDefinition.Name}").BulkInsert(td, DestinationTableDefinition.Name);
+                    break;
+                case ActionType.Update:
+                    new SqlTask(this, $"Execute Bulk Update {DestinationTableDefinition.Name}").BulkUpdate(td, DestinationTableDefinition.Name);
+                    break;
+                case ActionType.Upsert:
+                    new SqlTask(this, $"Execute Bulk Upsert {DestinationTableDefinition.Name}").BulkUpsert(td, DestinationTableDefinition.Name, Keys);
+                    break;
+                default:
+                    new SqlTask(this, $"Execute Bulk Insert into {DestinationTableDefinition.Name}").BulkInsert(td, DestinationTableDefinition.Name);
+                    break;
+            }
+            
             NLogFinish();
         }
 

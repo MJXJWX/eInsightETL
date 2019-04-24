@@ -93,6 +93,34 @@ namespace ALE.ETLBox.ConnectionManager {
             }
         }
 
+        public override void BeforeBulkUpdate()
+        {
+            throw new NotImplementedException();
+        }
 
+        public override void BulkUpdate(ITableData data, string tableName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void AfterBulkUpdate()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void BeforeBulkUpsert()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void BulkUpsert(ITableData data, string tableName, List<string> keys)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void AfterBulkUpsert()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

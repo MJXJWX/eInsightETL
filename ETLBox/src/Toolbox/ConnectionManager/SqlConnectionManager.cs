@@ -1,5 +1,8 @@
-﻿using System.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
+using System.Text;
 
 namespace ALE.ETLBox.ConnectionManager {
     /// <summary>
@@ -26,8 +29,56 @@ namespace ALE.ETLBox.ConnectionManager {
             }
         }
 
+        public override void BulkUpdate(ITableData data, string tableName)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override void BulkUpsert(ITableData data, string tableName, List<string> keys)
+        {
+            using(var conn = DbConnection)
+            {
+                if (conn.State == ConnectionState.Closed)
+                    conn.Open();
+                StringBuilder columns = new StringBuilder();
+                List<string> cols = new List<string>();
+                foreach (IColumnMapping colMap in data.ColumnMapping)
+                {
+                    if (columns.Length > 0)
+                        columns.Append(", ");
+                    columns.Append($"{colMap.SourceColumn} nvarchar(50)");
+                    cols.Add(colMap.SourceColumn);
+                }
+                var createTempTableCommand = $"Create Table #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)} ({columns.ToString()})";
+
+                //Execute the command to make a temp table
+                SqlCommand cmd = new SqlCommand(createTempTableCommand, conn);
+                cmd.ExecuteNonQuery();
+
+                //BulkCopy the data in the DataTable to the temp table
+                BulkInsert(data, $"#temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)}");
+
+                //use the merge command to upsert from the temp table to the destination table
+                string mergeSql = $"merge into {tableName} as Target  using #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)} as Source  on  {string.Join(" AND ", keys.ConvertAll(k => k = $"Target.{k} collate SQL_Latin1_General_CP1_CI_AS = Source.{k} collate SQL_Latin1_General_CP1_CI_AS"))} when matched then update set {string.Join(" , ", cols.ConvertAll(c => c = $"Target.{c} = Source.{c}"))} when not matched then insert ({string.Join(",", cols)}) values (Source.{string.Join(", Source.", cols)});";
+
+                cmd.CommandText = mergeSql;
+                cmd.ExecuteNonQuery();
+
+                //Clean up the temp table
+                cmd.CommandText = $"drop table #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)};";
+                cmd.ExecuteNonQuery();
+
+            }
+        }
+
         public override void BeforeBulkInsert() { }
         public override void AfterBulkInsert() { }
+
+        public override void BeforeBulkUpdate() { }
+        public override void AfterBulkUpdate() { }
+
+        public override void BeforeBulkUpsert() { }
+        public override void AfterBulkUpsert() { }
 
         public override IDbConnectionManager Clone() {
             SqlConnectionManager clone = new SqlConnectionManager((ConnectionString)ConnectionString) {
@@ -35,7 +86,5 @@ namespace ALE.ETLBox.ConnectionManager {
             };
             return clone;
         }
-
-
     }
 }

@@ -154,7 +154,7 @@ namespace ALE.ETLBox.ControlFlow
                         {
                             if (!reader.IsDBNull(i))
                             {
-                                string value = reader.GetValue(i).ToString();
+                                //string value = reader.GetValue(i).ToString();
                                 //for (int j = 0; j < reader.FieldCount; j++)
                                 //{
                                 //    if (String.IsNullOrEmpty(value))
@@ -168,7 +168,7 @@ namespace ALE.ETLBox.ControlFlow
 
                                 //}
 
-                                Actions?[i]?.Invoke(value);
+                                Actions?[i]?.Invoke(reader);
                             }
                             else
                             {
@@ -217,7 +217,7 @@ namespace ALE.ETLBox.ControlFlow
                 foreach (var colName in columnNames)
                 {
                     if (typeInfo.HasProperty(colName))
-                        Actions.Add(colValue => typeInfo.GetProperty(colName).SetValue(row, colValue));
+                        Actions.Add(colValue => typeInfo.GetProperty(colName).SetValue(row, colValue == null? null : ((IDataReader)colValue)[colName] + ""));
                     else
                         Actions.Add(col => { });
                 }
@@ -253,6 +253,41 @@ namespace ALE.ETLBox.ControlFlow
             }
         }
 
+        public void BulkUpdate(ITableData data, string tableName)
+        {
+            using (var conn = DbConnectionManager.Clone())
+            {
+                conn.Open();
+                QueryStart(LogType.Bulk);
+                conn.BeforeBulkUpdate();
+                conn.BulkUpdate(data, tableName);
+                conn.AfterBulkUpdate();
+                RowsAffected = data.RecordsAffected;
+                QueryFinish(LogType.Bulk);
+            }
+        }
+
+        public void BulkUpsert(ITableData data, string tableName, List<string> keys)
+        {
+            using (var conn = DbConnectionManager.Clone())
+            {
+                conn.Open();
+                QueryStart(LogType.Bulk);
+                conn.BeforeBulkUpsert();
+                conn.BulkUpsert(data, tableName, keys);
+                conn.AfterBulkUpsert();
+                RowsAffected = data.RecordsAffected;
+                QueryFinish(LogType.Bulk);
+            }
+        }
+
+
+        public enum ActionType
+        {
+            Update,
+            Insert,
+            Upsert
+        }
 
         /* Private implementation & stuff */
         enum LogType

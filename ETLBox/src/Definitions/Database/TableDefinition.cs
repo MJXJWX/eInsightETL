@@ -2,6 +2,7 @@
 using ALE.ETLBox.ControlFlow;
 using ALE.ETLBox.Helper;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 
 namespace ALE.ETLBox
@@ -50,7 +51,7 @@ namespace ALE.ETLBox
             TableDefinition result = new TableDefinition(tableName);
             TableColumn curCol = null;
             var readMetaSql = new SqlTask($"Read column meta data for table {tableName}",
-             $@" select cols.name, tpes.name, cols.is_nullable, cols.is_identity
+             $@" select cols.name, tpes.name as colname, cols.is_nullable, cols.is_identity
   from sys.columns cols
   inner join sys.tables tbl
    on cols.object_id = tbl.object_id
@@ -63,10 +64,16 @@ namespace ALE.ETLBox
   and tpes.name <> 'sysname'"
             , () => { curCol = new TableColumn(); }
             , () => { result.Columns.Add(curCol); }
-            , name => curCol.Name = name.ToString()
-            , colname => curCol.DataType = colname.ToString()
-            , is_nullable => curCol.AllowNulls = bool.Parse(is_nullable + "")
-            , is_identity => curCol.IsIdentity = bool.Parse(is_identity + "")
+            , reader => {
+                if(reader != null)
+                {
+                    reader = (IDataReader)reader;
+                    curCol.Name = ((IDataReader)reader)["name"] + "";
+                    curCol.DataType = ((IDataReader)reader)["colname"] + "";
+                    curCol.AllowNulls = bool.Parse(((IDataReader)reader)["is_nullable"] + "");
+                    curCol.IsIdentity = bool.Parse(((IDataReader)reader)["is_identity"] + "");
+                }
+              }
              )
             {
                 DisableLogging = true,
