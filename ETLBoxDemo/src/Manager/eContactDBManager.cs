@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Text;
 using ETLBoxDemo.Common;
 using System.Linq;
+using System.Data;
+using System.Reflection;
 
 namespace ETLBoxDemo.src.Manager
 {
@@ -58,41 +60,19 @@ namespace ETLBoxDemo.src.Manager
         {
             string eContactConnectionString = System.Configuration.ConfigurationManager.AppSettings["econtact-db-sql"];
             ControlFlow.CurrentDbConnection = new SqlConnectionManager(new ConnectionString(eContactConnectionString));
-            List<string> DatabaseValues = new List<string>();
             List<QueryParameter> parameter = new List<QueryParameter>() { new QueryParameter("CompanyID", "int", companyId) };
-            System.Reflection.PropertyInfo[] properties = typeof(CompanySettings).GetProperties();
-            string settingName = "", settingValue = "";
             new SqlTask("Select", SQL_GeteContactSettings, parameter)
             {
-                BeforeRowReadAction = () => { settingName = settingValue = ""; },
-                AfterRowReadAction = () => {
-                    //properties.First(p => p.Name == settingName).SetValue(settingName, settingValue ?? "0");
-                    for (int j = 0; j < properties.Length; j++)
-                    {
-                        if (properties[j].Name.Equals(settingName))
+                Actions = new List<Action<object>>() {
+                    result => {
+                        if (result != null && typeof(CompanySettings).GetProperty(DbTask.GetValueFromReader(result, "SettingName") + "") != null)
                         {
-                            properties[j].SetValue(settingName, settingValue ?? "0");
+                            typeof(CompanySettings).GetProperty(DbTask.GetValueFromReader(result, "SettingName") + "").SetValue(DbTask.GetValueFromReader(result, "SettingName") + "", DbTask.GetValueFromReader(result, "SettingValue") ?? "0");
                         }
                     }
-                },
-                Actions = new List<Action<object>>() {
-                    sName => settingName = (string)sName,
-                    sValue => settingValue = (string)sValue
                 }
             }.ExecuteReader();
-            //for (int i = 0; i < DatabaseValues.Count; i++)
-            //{
-            //    String[] strArr = DatabaseValues[i].Split(",");
-            //    for (int j = 0; j< properties.Length; j++)
-            //    {
-            //        if (properties[j].Name.Equals(strArr[0]))
-            //        {
-            //            properties[j].SetValue(strArr[0],strArr[1]??"0");
-            //        }
-            //    }
-            //}
             CompanySettings.CompanyID = companyId.ToString();
-            
         }
 
     }
