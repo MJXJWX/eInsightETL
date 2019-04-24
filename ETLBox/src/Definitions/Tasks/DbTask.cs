@@ -188,6 +188,20 @@ namespace ALE.ETLBox.ControlFlow
             }
         }
 
+        public static object GetValueFromReader(object reader, string name)
+        {
+            object result = null;
+            try
+            {
+                result = ((IDataReader)reader)[name];
+            }
+            catch
+            {
+                result = null;
+            }
+            return result;
+        }
+
         internal List<T> Query<T>(Action<T> doWithRowAction = null, List<string> columnNames = null)
         {
             List<T> result = null;
@@ -217,7 +231,7 @@ namespace ALE.ETLBox.ControlFlow
                 foreach (var colName in columnNames)
                 {
                     if (typeInfo.HasProperty(colName))
-                        Actions.Add(colValue => typeInfo.GetProperty(colName).SetValue(row, colValue == null? null : ((IDataReader)colValue)[colName] + ""));
+                        Actions.Add(colValue => typeInfo.GetProperty(colName).SetValue(row, GetValueFromReader(colValue, colName) + ""));
                     else
                         Actions.Add(col => { });
                 }

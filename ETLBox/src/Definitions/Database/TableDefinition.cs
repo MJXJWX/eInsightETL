@@ -65,14 +65,10 @@ namespace ALE.ETLBox
             , () => { curCol = new TableColumn(); }
             , () => { result.Columns.Add(curCol); }
             , reader => {
-                if(reader != null)
-                {
-                    reader = (IDataReader)reader;
-                    curCol.Name = ((IDataReader)reader)["name"] + "";
-                    curCol.DataType = ((IDataReader)reader)["colname"] + "";
-                    curCol.AllowNulls = bool.Parse(((IDataReader)reader)["is_nullable"] + "");
-                    curCol.IsIdentity = bool.Parse(((IDataReader)reader)["is_identity"] + "");
-                }
+                curCol.Name = DbTask.GetValueFromReader(reader, "name") + "";
+                curCol.DataType = DbTask.GetValueFromReader(reader, "colname") + "";
+                curCol.AllowNulls = bool.Parse(DbTask.GetValueFromReader(reader, "is_nullable") + "");
+                curCol.IsIdentity = bool.Parse(DbTask.GetValueFromReader(reader, "is_identity") + "");
               }
              )
             {
