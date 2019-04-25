@@ -1,9 +1,14 @@
+using System;
+
 namespace ETLBoxDemo.Common
 {
     public class CompanySettings
     {
         public static string CompanyID { get; set;}
         public static string ETL_HASNEWETL { get; set; }
+        public static string StartDate { get; set; }
+        public static string EndDate { get; set; }
+        public static string PK_Profiles { get; set; }
 
         public static string ETL_CENRES_SERVERNAME { get; set;}
         public static string ETL_CENRES_DBUSER { get; set;}

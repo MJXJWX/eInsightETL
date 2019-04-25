@@ -17,7 +17,13 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
     <PackageReference Include="NLog.Config" Version="4.6.2" />
+    <PackageReference Include="RabbitMQ.Client" Version="5.1.0" />
+    <PackageReference Include="Rebus" Version="5.3.0" />
+    <PackageReference Include="Rebus.NLog" Version="5.0.0" />
+    <PackageReference Include="Rebus.RabbitMq" Version="5.1.2" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
+    <PackageReference Include="Topshelf" Version="4.2.0" />
+    <PackageReference Include="Topshelf.NLog" Version="4.2.0" />
   </ItemGroup>
 
   <ItemGroup>

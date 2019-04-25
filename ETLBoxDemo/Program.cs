@@ -1,69 +1,44 @@
-﻿using ALE.ETLBox;
-using ALE.ETLBox.ConnectionManager;
-using ALE.ETLBox.ControlFlow;
-using ETLBoxDemo.src.Customer;
-using ETLBoxDemo.src.Manager;
-using ETLBoxDemo.src.Modules.Customer;
-using ETLBoxDemo.src.Utility;
-using Microsoft.Extensions.Configuration;
+﻿using ETLBoxDemo;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
+using Topshelf;
 
-namespace ALE.ETLBoxDemo {
+namespace ALE.ETLBoxDemo
+{
     class Program {
         static void Main(string[] args) {
-
-            try
+            var rc = HostFactory.Run(x =>
             {
-                string sC = "data source=QHB-CRMDB001.centralservices.local;initial catalog=eInsightCRM_OceanProperties_QA;uid=eInsightCRM_eContact_OceanProperties;pwd=Tv3CxdZwA%9;MultipleActiveResultSets=True";
-                string dC = "data source=localhost;initial catalog=eInsightCRM_AMResorts_QA;uid=sa;pwd=123456;MultipleActiveResultSets=True";
+                x.Service<eInsightETLService>(s =>
+                {
+                    s.ConstructUsing(name => new eInsightETLService());
+                    s.WhenStarted(tefs => tefs.Start());
+                    s.WhenStopped(ters => ters.Stop());
+                });
+                x.RunAsLocalSystem();
 
-                string dT = "dbo.D_Customer";
-                string sql = "SELECT TOP 20 CustomerID, FirstName, LastName, Email, PropertyCode, InsertDate, SourceID, AddressStatus, DedupeCheck, AllowEMail, Report_Flag, UNIFOCUS_SCORE FROM dbo.D_Customer with(Nolock);";
+                x.SetDescription("eInight ETL Service");
+                x.SetDisplayName("eInight ETL Service");
+                x.SetServiceName("eInightETLService");
+                x.UseNLog();
+                // Set the Service Recovery Options
+                // From http://appetere.com/post/topshelf-enableservicerecovery-configuration
+                //
+                x.EnableServiceRecovery(svc =>
+                {
+                    svc.OnCrashOnly();
+                    // First Failure (restart immediately)
+                    svc.RestartService(delayInMinutes: 0);
+                    // Second Failure (restart immediately)
+                    svc.RestartService(delayInMinutes: 0);
+                    // Subsequent Failures (restart after 1 min)
+                    svc.RestartService(delayInMinutes: 1);
+                    // Reset counters each day
+                    svc.SetResetPeriod(days: 1);
+                });
+            });
 
-                new DataFlowTask<Customer>().runTask(sC, dC, dT, sql, true, true, new List<string>() { "FirstName", "LastName"}, new List<string>() { "CustomerID", "FirstName", "LastName", "Email", "PropertyCode", "InsertDate", "SourceID", "AddressStatus", "DedupeCheck", "AllowEMail", "Report_Flag", "UNIFOCUS_SCORE" });
-
-                //string dT = "dbo.eInsight_L_Languages";
-                //string sql = "select ID, Language, Language_en, Globalization from dbo.eInsight_L_Languages with(nolock);";
-                //new DataFlowTask<eInsight_L_Languages>().runTask(sC, dC, dT, sql);
-
-                eContactDBManager.GetCompanySetting(1338);
-
-                //Customer
-                Console.WriteLine("Starting Customer");
-                CustomerTask CT = new CustomerTask();
-                CT.Start();
-                Console.WriteLine("Customer finished...");
-            }
-            catch(Exception ex)
-            {
-                Debug.WriteLine(ex);
-                throw ex;
-            }
-
-
-
-            //Console.WriteLine("Starting ControlFlow example");
-            //ControlFlowTasks cft = new ControlFlowTasks();
-            //cft.Start();
-            //Console.WriteLine("ControlFlow finished...");
-
-            //Console.WriteLine("Start Logging example");
-            //Logging log = new Logging();
-            //log.Start();
-            //Console.WriteLine("Logging finished...");
-
-            //Console.WriteLine("Starting DataFlow example");
-            //DataFlowTasks dft = new DataFlowTasks();
-            //dft.Preparation();
-            //dft.Start();
-            //Console.WriteLine("Dafaflow finished...");
-
-            //Console.WriteLine("Press any key to continue...");
-            //Console.ReadLine();
+            var exitCode = (int)Convert.ChangeType(rc, rc.GetTypeCode());
+            Environment.ExitCode = exitCode; 
         }
     }
 }
