@@ -30,7 +30,7 @@ namespace ETLBoxDemo.src.Manager
             var sourceCon = PMSDBManager.GetPMSConnectionString();
             var destinationCon = CRMDBManager.GetCRMConnectionString();
             var tableName = "dbo.PMS_ProfileDocuments";
-            var sql = PMSDBManager.SQL_GetDataFromProfileDocument;
+            var sql = string.Format(PMSDBManager.SQL_GetDataFromProfileDocument, CompanySettings.StartDate, CompanySettings.EndDate);
             var primaryKeys = new List<string>() { "FK_Profile" };
             var properties = new List<string>() { "Id", "FK_Profile", "DocType", "DocSource", "CodeOnDocument", "DocNotes", "DocId_PII", "NameOnDocument_PII", "DocumentBody_PII", "NationalityOnDocument", "EffectiveDate", "ExpirationDate", "PII_StoredAs", "PII_Algorithm", "PII_Key", "PII_KeyId", "Issuer ", "IssuerAddress1", "IssuerAddress2", "IssuerCity", "IssuerStateProv", "IssuerPostalCode", "IssuerCountry", "IsPrimary", "InactiveDate", "DateCreated", "LastUpdated" };
 
@@ -106,7 +106,7 @@ namespace ETLBoxDemo.src.Manager
             var primaryKeys = new List<string>() { "PK_Address" };
             var properties = new List<string>() { "PK_Address", "FK_Profiles", "AddressTypeCode", "SourceAddressType", "RecordStatus", "AddressStatus", "Attn", "Address1", "Address2", "City", "StateProvince", "PostalCode", "CountryCode", "DateInserted", "LastUpdated", "Checksum", "IsDirty", "IsPrimary", "AddressCleansed", "AddressLanguage" };
 
-            new DataFlowTask<PMS_ADDRESS>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+            new DataFlowTask<PMS_Address>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
         }
 
     }

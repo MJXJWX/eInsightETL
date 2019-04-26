@@ -2,6 +2,7 @@
 using ALE.ETLBox.ConnectionManager;
 using ALE.ETLBox.ControlFlow;
 using ETLBox.src.Toolbox.Database;
+using ETLBoxDemo.Common;
 using ETLBoxDemo.src.Manager;
 using System;
 using System.Collections.Generic;
@@ -13,27 +14,22 @@ namespace ETLBoxDemo.src.Customer
 {
     public class CustomerTask
     {
-        private Dictionary<string, object> dictionarySettings;
-        public CustomerTask()
-        {
-        }
-
         public void Start()
         {
             //Get Last CheckTime
             string lastCheckTime = CRMDBManager.GetLastCheckTime("D_CUSTOMER");
 
             //Truncate Table ETL_TEMP_Profiles
-            PMSDBManager.TruncateTable("TruncateETLProfilesTEMPTable", "ETL_TEMP_Profiles");
-            
+            PMSDBManager.TruncateTable("ETL_TEMP_Profiles");
+
 
             //TRUNCATE TABLE ETL_TEMP_PROFILES_D_CUSTOMER;
             //TRUNCATE TABLE ETL_TEMP_PROFILES_D_CUSTOMER_INSERT;
             //TRUNCATE TABLE ETL_TEMP_PROFILES_D_CUSTOMER_UPDATE;
             //TRUNCATE TABLE ETL_TEMP_D_CUSTOMER_For_Email;
-            //SQLHelper.TruncateTable(strPMSConnectionString, "TruncateETLCustomerTempTable", "ETL_TEMP_PROFILES_D_CUSTOMER", "ETL_TEMP_PROFILES_D_CUSTOMER_INSERT", "ETL_TEMP_PROFILES_D_CUSTOMER_UPDATE", "ETL_TEMP_D_CUSTOMER_For_Email");
+            PMSDBManager.TruncateTable("ETL_TEMP_PROFILES_D_CUSTOMER", "ETL_TEMP_PROFILES_D_CUSTOMER_INSERT", "ETL_TEMP_PROFILES_D_CUSTOMER_UPDATE", "ETL_TEMP_D_CUSTOMER_For_Email");
 
-            var companyId = dictionarySettings["CompanyID"] + "";
+            var companyId = CompanySettings.CompanyID;
             if ("7375".Equals(companyId))
             {
                 // Create Source Code For Open Table
@@ -66,7 +62,12 @@ namespace ETLBoxDemo.src.Customer
 
             //Move Address
             CustomerDataFlowTaskManager.DFT_MoveAddress();
-            
+
+            //Update AddressTypeCode under table PMS_Address
+            PMSDBManager.UpdateAddressTypeCodeUnderPMS_Address();
+
+
+
         }
     }
 }

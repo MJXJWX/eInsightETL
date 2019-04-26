@@ -59,5 +59,19 @@ namespace ETLBox.src.Toolbox.Database
                 new SqlTask(taskName, sql.ToString()).ExecuteNonQuery();
             }
         }
+
+        public static void DeleteTableValue(String strConnectionString, String taskName, String strSql, List<QueryParameter> parameter)
+        {
+            ControlFlow.CurrentDbConnection = new SqlConnectionManager(new ConnectionString(strConnectionString));
+            if (parameter != null)
+            {
+                new SqlTask(taskName, strSql, parameter).ExecuteNonQuery();
+            }
+            else
+            {
+                new SqlTask(taskName, strSql).ExecuteNonQuery();
+            }
+        }
+
     }
 }

@@ -45,8 +45,8 @@ namespace ETLBoxDemo.src.Manager
                     InactiveDate ,
                     DateCreated ,
                     LastUpdated FROM dbo.ProfileDocuments With(Nolock)
-            WHERE (LastUpdated >= '2012-03-12 20:50:00' OR DateCreated >= '2012-03-12 20:50:00') 
-            AND LastUpdated <= '2012-01-24 11:06:00' and DateCreated <= '2012-01-24 11:06:00'";
+            WHERE (LastUpdated >= '{0}' OR DateCreated >= '{0}') 
+            AND LastUpdated <= '{1}' and DateCreated <= '{1}'";
         
         public static readonly string SQL_GetDataFromProfilePolicies = 
             @"SELECT PK_ProfilePolicies ,
@@ -150,13 +150,19 @@ namespace ETLBoxDemo.src.Manager
             @"SELECT cm.PK_ContactMethod, 
                 cm.SourceName FROM dbo.ContactMethod cm with (nolock) 
             WHERE (cm.LastUpdated >= '2012-03-12 20:50:00' OR cm.DateInserted >= '2012-03-12 20:50:00') and cm.LastUpdated <= '2012-01-24 11:06:00' and cm.DateInserted <= '2012-01-24 11:06:00'";
+        
+        public static readonly string SQL_UpdatePMS_Address = @"UPDATE PMS_Address SET AddressTypeCode = 'W' WHERE AddressTypeCode = 'U'";
         #endregion
 
         public static void TruncateTable(params string[] tableNames)
         {
-            SQLHelper.TruncateTable(GetPMSConnectionString(), "TruncateETLProfilesTEMPTable", "ETL_TEMP_Profiles");
+            SQLHelper.TruncateTable(GetPMSConnectionString(), "TruncateETLPMSTEMPTable: " + string.Join(", ", tableNames), "ETL_TEMP_Profiles");
         }
 
+        public static void UpdateAddressTypeCodeUnderPMS_Address()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetPMSConnectionString(), "sqlUpdatePMS_Address", SQL_UpdatePMS_Address, null);
+        }
 
     }
 }
