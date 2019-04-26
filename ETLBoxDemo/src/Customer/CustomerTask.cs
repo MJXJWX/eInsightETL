@@ -66,6 +66,82 @@ namespace ETLBoxDemo.src.Customer
             //Update AddressTypeCode under table PMS_Address
             PMSDBManager.UpdateAddressTypeCodeUnderPMS_Address();
 
+            //Move special Requests - Omni
+            if ("12123".Equals(companyId) || "13358".Equals(companyId) || "13298".Equals(companyId))
+            {
+                CustomerDataFlowTaskManager.DFT_MoveSpecialRequests_Omni();
+            }
+            else
+            {
+                //Truncate CENRES_Specialrequests 
+                PMSDBManager.TruncateTable("CENRES_SpecialRequests", "ETL_TEMP_Remove_SpecialRequests");
+
+                //Move Updated Profiles into Temp table 
+                CustomerDataFlowTaskManager.DFT_MoveUpdatedProfilesIntoTempTable();
+
+                //Delete Global Special Requests for Updated Profiles
+                CRMDBManager.DeleteGlobalSpecialRequestsForUpdatedProfiles();
+
+                //Move the existing Special Requests
+
+                //Move Existing Special Requests
+                CRMDBManager.MoveExistingSpecialRequests();
+
+                //Move Special Requests
+                CustomerDataFlowTaskManager.DFT_MoveSpecialRequests_Omni();
+
+                //Remove ResortField for Global Request
+                CRMDBManager.RemoveResortFieldForGlobalRequest();
+
+                //Truncate CENRES_Specialrequests
+                CRMDBManager.TruncateTable("CENRES_SpecialRequests");
+
+                //Move Special Requests into temp table
+
+                //Delete Orphan records that don't match CenRes from PMS_SpecialRequests table
+                CRMDBManager.DeleteOrphanRecords();
+            }
+
+            
+            if ("7375".Equals(companyId))
+            {
+                // Update PMS Profile Mapping for Biltmore
+                CRMDBManager.UpdatePMSProfileMappingForBiltmore();
+            }
+            else
+            {
+                //Update PMS Profile Mapping
+                CRMDBManager.UpdatePMSProfileMapping();
+            }
+
+            // Move the New or Updates in tehe profiles in the Temp Table
+
+            // Separate the Insert and Update into 2 temp tables
+
+            //Insert profiles in D_Customer without membership
+            CustomerDataFlowTaskManager.DFT_InsertOrUpdateD_CustomerWithoutMembership();
+
+            if ("1338".Equals(companyId) || "1475".Equals(companyId) || "6245".Equals(companyId) || "7902".Equals(companyId) || "8009".Equals(companyId) || "7692".Equals(companyId) || "11733".Equals(companyId) || "11761".Equals(companyId))
+            {
+                //Update profiles into D_Customer with membership
+                CustomerDataFlowTaskManager.DFT_InsertOrUpdateD_CustomerWithMembership();
+            }
+            else
+            {
+                //Update profiles into D_Customer without membership
+                CustomerDataFlowTaskManager.DFT_InsertOrUpdateD_CustomerWithoutMembership();
+            }
+
+            //issue Update property code 
+            CustomerDataFlowTaskManager.DFT_UpdatePropertyCode();
+
+            // Move Profiles to PMS_Profiles and PMS_PROFILE_MAPPING
+            CustomerDataFlowTaskManager.DFT_MoveProfilesToPMS_ProfilesAndPMS_PROFILE_MAPPING();
+
+            //Move Profiles_Ext to PMS_Profiles_Ext 
+            CustomerDataFlowTaskManager.DFT_MoveProfiles_ExtToPMS_Profiles_Ext();
+
+
 
 
         }

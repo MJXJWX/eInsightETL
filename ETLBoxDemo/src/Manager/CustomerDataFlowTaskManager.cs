@@ -10,21 +10,6 @@ namespace ETLBoxDemo.src.Manager
 {
     class CustomerDataFlowTaskManager
     {
-        public static void TestDataFlowTask()
-        {
-            string sC = "data source=QHB-CRMDB001.centralservices.local;initial catalog=eInsightCRM_OceanProperties_QA;uid=eInsightCRM_eContact_OceanProperties;pwd=Tv3CxdZwA%9;MultipleActiveResultSets=True";
-            string dC = "data source=localhost;initial catalog=eInsightCRM_AMResorts_QA;uid=sa;pwd=123456;MultipleActiveResultSets=True";
-
-            string dT = "dbo.D_Customer";
-            string sql = "SELECT TOP 20 CustomerID, FirstName, LastName, Email, PropertyCode, InsertDate, SourceID, AddressStatus, DedupeCheck, AllowEMail, Report_Flag, UNIFOCUS_SCORE FROM dbo.D_Customer with(Nolock);";
-
-            new DataFlowTask<D_Customer>().runTask(sC, dC, dT, sql, true, true, new List<string>() { "FirstName", "LastName" }, new List<string>() { "CustomerID", "FirstName", "LastName", "Email", "PropertyCode", "InsertDate", "SourceID", "AddressStatus", "DedupeCheck", "AllowEMail", "Report_Flag", "UNIFOCUS_SCORE" });
-
-            //string dT = "dbo.eInsight_L_Languages";
-            //string sql = "select ID, Language, Language_en, Globalization from dbo.eInsight_L_Languages with(nolock);";
-            //new DataFlowTask<eInsight_L_Languages>().runTask(sC, dC, dT, sql);
-        }
-
         public static void DFT_MoveProfileDocument()
         {
             var sourceCon = PMSDBManager.GetPMSConnectionString();
@@ -108,6 +93,115 @@ namespace ETLBoxDemo.src.Manager
 
             new DataFlowTask<PMS_Address>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
         }
+
+        public static void DFT_MoveSpecialRequests_Omni()
+        {
+            var sourceCon = PMSDBManager.GetPMSConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var tableName = "dbo.PMS_SpecialRequests";
+            var sql = PMSDBManager.SQL_GetDataFromV_SpecialRequests;
+            var primaryKeys = new List<string>() { "PK_SpecialRequests" };
+            var properties = new List<string>() {"PK_SpecialRequests", "FK_Reservations", "FK_Profiles", "ExternalRPH", "RequestType", "RequestCode", "RequestComments",
+                                                  "ResortField", "ActionTypeCode", "SourceActionType", "CRMSourceActionType", "InactiveDate", "DateInserted", "LastUpdated", "Checksum", "IsDirty", "Quantity" };
+
+            new DataFlowTask<PMS_SpecialRequests>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+        }
+
+        public static void DFT_MoveUpdatedProfilesIntoTempTable()
+        {
+            var sourceCon = PMSDBManager.GetPMSConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var tableName = "dbo.CENRES_SpecialRequests";
+            var sql = PMSDBManager.SQL_GetDataFromSpecialRequests;
+            var primaryKeys = new List<string>() { "PK_SpecialRequests" };
+            var properties = new List<string>() { "PK_SpecialRequests", "FK_Profiles", "RequestType", "RequestCode", "RequestComments" };
+
+            new DataFlowTask<CENRES_SpecialRequests>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+        }
+
+        public static void DFT_MoveSpecialRequests()
+        {
+            var sourceCon = PMSDBManager.GetPMSConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var tableName = "dbo.PMS_SpecialRequests";
+            var sql = PMSDBManager.SQL_GetDataFromV_SpecialRequests;
+            var primaryKeys = new List<string>() { "PK_SpecialRequests" };
+            var properties = new List<string>() { "PK_SpecialRequests", "FK_Profiles", "RequestType", "RequestCode", "RequestComments" };
+
+            new DataFlowTask<CENRES_SpecialRequests>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+        }
+
+        public static void DFT_InsertOrUpdateD_CustomerWithoutMembership()
+        {
+            var sourceCon = PMSDBManager.GetPMSConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var tableName = "dbo.D_CUSTOMER";
+            var sql = PMSDBManager.SQL_GetDataFromProfiles;
+            var primaryKeys = new List<string>() { "PK_Profiles" };
+            var properties = new List<string>() { "PropertyCode","PK_Profiles","SourceGuestID","FirstName","MiddleName","LastName","Salutation","ShortTitle","GenderCode",
+                                                                                            "Company","CompanyTitle","JobTitle","Languages","SourceID","DedupeCheck","DatePMSProfileUpdated","AllowEMail","AllowMail",
+                                                                                            "AllowSMS","AllowPhone","ExternalProfileID2","VIPID","VIPCode","Nationality" };
+
+            new DataFlowTask<D_Customer>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+        }
+
+        public static void DFT_InsertOrUpdateD_CustomerWithMembership()
+        {
+            var sourceCon = PMSDBManager.GetPMSConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var tableName = "dbo.D_CUSTOMER";
+            var sql = PMSDBManager.SQL_GetDataFromProfiles;
+            var primaryKeys = new List<string>() { "PK_Profiles" };
+            var properties = new List<string>() { "PropertyCode","PK_Profiles","SourceGuestID","FirstName","MiddleName","LastName","Salutation","ShortTitle","GenderCode",
+                                                                                            "Company","CompanyTitle","JobTitle","Languages","SourceID","DedupeCheck","DatePMSProfileUpdated","AllowEMail","AllowMail",
+                                                                                            "AllowSMS","AllowPhone","Membership","ExternalProfileID2","VIPID","VIPCode","Nationality" };
+
+            new DataFlowTask<D_Customer>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+        }
+
+        //issue
+        public static void DFT_UpdatePropertyCode()
+        {
+            var sourceCon = PMSDBManager.GetPMSConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var tableName = "dbo.D_CUSTOMER";
+            var sql = PMSDBManager.SQL_GetDataFromProfilesToUpdatePropertyCode;
+            var primaryKeys = new List<string>() { "PK_Profiles" };
+            var properties = new List<string>() { "PropertyCode","PK_Profiles"};
+
+            new DataFlowTask<D_Customer>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+        }
+
+        public static void DFT_MoveProfilesToPMS_ProfilesAndPMS_PROFILE_MAPPING()
+        {
+            var sourceCon = PMSDBManager.GetPMSConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var tableName = "dbo.PMS_Profiles";
+            var sql = PMSDBManager.SQL_GetDataFromProfilesToUpsertPMS_Profiles;
+            var primaryKeys = new List<string>() { "PK_Profiles" };
+            var properties = new List<string>() { "PK_Profiles", "RecordStatus", "SourceTypeId", "ExternalProfileID", "PMSProfileID", "PMSNameCode", "CendynPropertyID", "ProfileTypeID", "ProfileTypeCode",
+                                                    "SourceProfileType", "SourceProfileNameCode", "ProfileTypeCategory", "JobTitle", "Salutation", "FirstName", "FamiliarName", "MiddleName", "LastName", "FullName",
+                                                    "Suffix", "Membership", "VIPID", "VIPCode", "FreqFlyerNum", "PrimaryLanguage", "GenderCode", "DOBYear", "DOBMonth", "DOBDayOfMonth", "CompanyName",
+                                                    "FK_CompanyProfile", "AllowMail", "AllowEMail", "GuestPriv", "AllowPhone", "AllowSMS", "AllowHistory", "AllowMarketResearch", "AllowThirdParty", "PMSCreatorCode",
+                                                    "PMSLastUpdaterCode", "DatePMSProfileCreated", "DatePMSProfileUpdated", "DateInserted", "LastUpdated", "Checksum", "IsDirty", "ImportSource", "ImportSourceID", "ARNumber", "SourceXML", "ResortID", "ExternalProfileID2", "Nationality" };
+
+            new DataFlowTask<PMS_Profiles>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+        }
+
+        public static void DFT_MoveProfiles_ExtToPMS_Profiles_Ext()
+        {
+            var sourceCon = PMSDBManager.GetPMSConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var tableName = "dbo.PMS_Profiles_Ext";
+            var sql = PMSDBManager.SQL_GetDataFromProfilesExt;
+            var primaryKeys = new List<string>() { "PK_ProfilesExt" };
+            var properties = new List<string>() { "PK_ProfilesExt", "FK_Profiles", "RecordStatus", "PriorityCode", "RoomsPotential", "SalesScope", "ScopeCity", "ActionCode", "BusinessSegment",
+                                                    "AccountType", "SalesSource", "IndustryCode", "CompetitionCode", "InfluenceCode", "DateInserted", "LastUpdated", "Checksum",
+                                                    "IsDirty", "Salutation2", "FirstName2", "LastName2", "FamiliarName2", "CompanyName2", "PrimaryLanguage2", "Blacklist", "BlacklistMessage", "AnonymizationStatus" };
+            new DataFlowTask<PMS_Profiles_Ext>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+
+        }
+
 
     }
 }
