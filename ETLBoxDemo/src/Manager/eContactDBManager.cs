@@ -56,8 +56,25 @@ namespace ETLBoxDemo.src.Manager
                                                                 WHERE a.SettingName IN ('HasPropertyUnsubscribe', 'HasStayActivities', 'HasStayOneToManyStayDetailHeader', 'BringRateTypeDescFromCenRes', 'ETL_Has_RelatedTravelers_Info', 'HasBrandUnsubscribe')
                                                                 AND c.CompanyID = @CompanyID";
 
-        public static void GetCompanySetting(int companyId)
+        public static void GetCompanySetting(Dictionary<string, object> settings)
         {
+            if (settings != null && settings.Count > 0)
+            {
+                foreach (var key in settings.Keys)
+                {
+                    if (typeof(CompanySettings).GetProperty(key) != null)
+                    {
+                        typeof(CompanySettings).GetProperty(key).SetValue(key, settings[key] + "");
+                    }
+                }
+            }
+            int companyId;
+            int.TryParse(CompanySettings.CompanyID, out companyId);
+            if (companyId == 0)
+            {
+                throw new KeyNotFoundException("Missing CompanyID in Request.");
+            }
+
             string eContactConnectionString = System.Configuration.ConfigurationManager.AppSettings["econtact-db-sql"];
             ControlFlow.CurrentDbConnection = new SqlConnectionManager(new ConnectionString(eContactConnectionString));
             List<QueryParameter> parameter = new List<QueryParameter>() { new QueryParameter("CompanyID", "int", companyId) };
@@ -72,7 +89,6 @@ namespace ETLBoxDemo.src.Manager
                     }
                 }
             }.ExecuteReader();
-            CompanySettings.CompanyID = companyId.ToString();
         }
 
     }

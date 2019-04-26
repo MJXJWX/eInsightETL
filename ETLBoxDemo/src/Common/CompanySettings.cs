@@ -86,5 +86,7 @@ namespace ETLBoxDemo.Common
         public static string BringRateTypeDescFromCenRes { get; set; }
         public static string ETL_Has_RelatedTravelers_Info { get; set; }
         public static string HasBrandUnsubscribe { get; set; }
+
+        public static string ConnectionStringFormat_Sql = "data source={0};initial catalog={1};uid={2};pwd={3};MultipleActiveResultSets=True";
     }
 }
