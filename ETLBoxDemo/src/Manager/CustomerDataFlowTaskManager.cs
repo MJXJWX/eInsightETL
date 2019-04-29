@@ -16,7 +16,7 @@ namespace ETLBoxDemo.src.Manager
             string dC = "data source=localhost;initial catalog=eInsightCRM_AMResorts_QA;uid=sa;pwd=123456;MultipleActiveResultSets=True";
 
             string dT = "dbo.D_Customer";
-            string sql = "SELECT TOP 20 CustomerID, FirstName, LastName, Email, PropertyCode, InsertDate, SourceID, AddressStatus, DedupeCheck, AllowEMail, Report_Flag, UNIFOCUS_SCORE FROM dbo.D_Customer with(Nolock);";
+            string sql = "SELECT TOP 20 CustomerID, FirstName, LastName, Email, PropertyCode, PK_Profiles, InsertDate, SourceID, AddressStatus, DedupeCheck, AllowEMail, Report_Flag, UNIFOCUS_SCORE FROM dbo.D_Customer with(Nolock);";
 
             //new DataFlowTask<D_Customer>().runTask(sC, dC, dT, sql, true, true, new List<string>() { "FirstName", "LastName" }, new List<string>() { "CustomerID", "FirstName", "LastName", "Email", "PropertyCode", "InsertDate", "SourceID", "AddressStatus", "DedupeCheck", "AllowEMail", "Report_Flag", "UNIFOCUS_SCORE" });
 
@@ -40,7 +40,7 @@ namespace ETLBoxDemo.src.Manager
             keys.Add("ID", "CustomerID");
             var lMapping = new Dictionary<string, string>();
             lMapping.Add("FieldValue", "ShortTitle");
-            new DataFlowTask<D_Customer, D_Customer, L_Data_Dictionary>().runTask(sC, dC, dC, dT, sql, lSql, keys, lMapping, mapping, true, true, new List<string>() { "FirstName", "LastName" }, new List<string>() { "CustomerID", "FirstName", "LastName", "Email", "PropertyCode", "InsertDate", "SourceID", "AddressStatus", "DedupeCheck", "AllowEMail", "Report_Flag", "UNIFOCUS_SCORE" });
+            new DataFlowTask<D_Customer, D_Customer, L_Data_Dictionary>().runTask(sC, dC, dC, dT, sql, lSql, keys, lMapping, null, true, true, new List<string>() { "FirstName", "LastName" });
 
         }
 

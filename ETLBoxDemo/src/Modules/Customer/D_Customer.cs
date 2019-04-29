@@ -6,6 +6,7 @@ namespace ETLBoxDemo.src.Modules.Customer
 {
     public class D_Customer
     {
+        public string CustomerID { get; set; }
         public string PropertyCode{ get; set; }
         public string PK_Profiles{ get; set; }
         public string SourceGuestID{ get; set; }

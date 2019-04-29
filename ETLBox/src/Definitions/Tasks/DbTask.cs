@@ -152,8 +152,8 @@ namespace ALE.ETLBox.ControlFlow
                         BeforeRowReadAction?.Invoke();
                         for (int i = 0; i < Actions?.Count; i++)
                         {
-                            if (!reader.IsDBNull(i))
-                            {
+                            //if (!reader.IsDBNull(i))
+                            //{
                                 //string value = reader.GetValue(i).ToString();
                                 //for (int j = 0; j < reader.FieldCount; j++)
                                 //{
@@ -169,11 +169,11 @@ namespace ALE.ETLBox.ControlFlow
                                 //}
 
                                 Actions?[i]?.Invoke(reader);
-                            }
-                            else
-                            {
-                                Actions?[i]?.Invoke(null);
-                            }
+                            //}
+                            //else
+                            //{
+                            //    Actions?[i]?.Invoke(null);
+                            //}
                         }
                         AfterRowReadAction?.Invoke();
                         InternalAfterRowReadAction?.Invoke();

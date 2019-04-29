@@ -47,6 +47,10 @@ namespace ETLBoxDemo.src.Utility
                         columns.Add(new TableColumn(p, "string", allowNulls: false, isPrimaryKey: false, isIdentity: true));
                 });
             }
+            else
+            {
+                columns = new List<TableColumn>();
+            }
             if (actionType == ActionType.Upsert && (primaryKey == null || primaryKey.Count == 0))
             {
                 actionType = ActionType.Insert;
@@ -77,7 +81,7 @@ namespace ETLBoxDemo.src.Utility
     {
         public void runTask(string sConnString, string dConnString, string dTableName, string sql, Dictionary<string, string> mapping, bool isUpdate = false, bool isInsert = false, List<string> primaryKey = null, List<string> properties = null)
         {
-            if (mapping == null || mapping.Count == 0)
+            if ((typeof(T) != typeof(D)) && (mapping == null || mapping.Count == 0))
             {
                 throw new KeyNotFoundException("Missing mapping of table data and destination table");
             }
@@ -114,6 +118,10 @@ namespace ETLBoxDemo.src.Utility
                         columns.Add(new TableColumn(p, "string", allowNulls: false, isPrimaryKey: false, isIdentity: true));
                 });
             }
+            else
+            {
+                columns = new List<TableColumn>();
+            }
             if (actionType == ActionType.Upsert && (primaryKey == null || primaryKey.Count == 0))
             {
                 actionType = ActionType.Insert;
@@ -130,9 +138,19 @@ namespace ETLBoxDemo.src.Utility
                 input =>
                 {
                     D result = (D)Activator.CreateInstance(typeof(D));
-                    foreach (var key in mapping.Keys)
+                    if(typeof(T) == typeof(D))
                     {
-                        result.GetType().GetProperty(mapping[key]).SetValue(result, input.GetType().GetProperty(key).GetValue(input));
+                        foreach (var property in typeof(D).GetProperties())
+                        {
+                            result.GetType().GetProperty(property.Name).SetValue(result, input.GetType().GetProperty(property.Name).GetValue(input));
+                        }
+                    }
+                    else
+                    {
+                        foreach (var key in mapping.Keys)
+                        {
+                            result.GetType().GetProperty(mapping[key]).SetValue(result, input.GetType().GetProperty(key).GetValue(input));
+                        }
                     }
                     return result;
                 }
@@ -186,7 +204,7 @@ namespace ETLBoxDemo.src.Utility
 
         public void runTask(string sConnString, string dConnString, string lConnString, string dTableName, string sql, string lookupSql, Dictionary<string, string> lookupKey, Dictionary<string, string> lookupMapping, Dictionary<string, string> mapping, bool isUpdate = false, bool isInsert = false, List<string> primaryKey = null, List<string> properties = null)
         {
-            if (mapping == null || mapping.Count == 0)
+            if ((typeof(T) != typeof(D)) && (mapping == null || mapping.Count == 0))
             {
                 throw new KeyNotFoundException("Missing mapping of table data and destination table");
             }
@@ -228,6 +246,10 @@ namespace ETLBoxDemo.src.Utility
                         columns.Add(new TableColumn(p, "string", allowNulls: false, isPrimaryKey: false, isIdentity: true));
                 });
             }
+            else
+            {
+                columns = null;
+            }
             if (actionType == ActionType.Upsert && (primaryKey == null || primaryKey.Count == 0))
             {
                 actionType = ActionType.Insert;
@@ -255,9 +277,19 @@ namespace ETLBoxDemo.src.Utility
                 input =>
                 {
                     D result = (D)Activator.CreateInstance(typeof(D));
-                    foreach (var key in mapping.Keys)
+                    if (typeof(T) == typeof(D))
                     {
-                        result.GetType().GetProperty(mapping[key]).SetValue(result, input.GetType().GetProperty(key).GetValue(input));
+                        foreach (var property in typeof(D).GetProperties())
+                        {
+                            result.GetType().GetProperty(property.Name).SetValue(result, input.GetType().GetProperty(property.Name).GetValue(input));
+                        }
+                    }
+                    else
+                    {
+                        foreach (var key in mapping.Keys)
+                        {
+                            result.GetType().GetProperty(mapping[key]).SetValue(result, input.GetType().GetProperty(key).GetValue(input));
+                        }
                     }
                     return result;
                 }
