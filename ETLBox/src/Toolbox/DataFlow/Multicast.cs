@@ -15,7 +15,7 @@ namespace ALE.ETLBox.DataFlow {
     /// multicast.LinkTo(dest2);
     /// </code>
     /// </example>
-    public class Multicast<TInput> : GenericTask, ITask, IDataFlowTransformation<TInput, TInput> where TInput : new() {
+    public class Multicast<TInput> : GenericTask, ITask, IDataFlowTransformation<TInput, TInput> /*where TInput : new()*/ {
         /* ITask Interface */
         public override string TaskType { get; set; } = "DF_MULTICAST";
         public override string TaskName { get; set; } = "Multicast (unnamed)";
@@ -52,10 +52,11 @@ namespace ALE.ETLBox.DataFlow {
         private TInput Clone(TInput row) {
             TInput clone = default(TInput);
             if (!TypeInfo.IsArray) {
-                clone = new TInput();                
-                foreach (PropertyInfo propInfo in TypeInfo.Properties) {
-                    propInfo.SetValue(clone, propInfo.GetValue(row));                    
-                }
+                //clone = new TInput();                
+                //foreach (PropertyInfo propInfo in TypeInfo.Properties) {
+                //    propInfo.SetValue(clone, propInfo.GetValue(row));                    
+                //}
+                return row;
             }
             return clone;
         }

@@ -6,7 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="src\Customer\DFT_MoveProfileDocument.cs" />
+    <Compile Remove="src\Modules\Customer\Customer.cs" />
+    <Compile Remove="src\Tasks\DFT_MoveProfileDocument.cs" />
     <Compile Remove="src\Utility\Class1.cs" />
     <Compile Remove="src\Utility\CreateNewClassByDt.cs" />
     <Compile Remove="src\Utility\DataFlowTaskHelper.cs" />

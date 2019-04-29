@@ -1,6 +1,5 @@
-﻿using ETLBoxDemo.Common;
-using ETLBoxDemo.src.Customer;
-using ETLBoxDemo.src.Manager;
+﻿using ETLBoxDemo.src.Manager;
+using ETLBoxDemo.src.Tasks;
 using Newtonsoft.Json;
 using Rebus.Bus;
 using Rebus.Handlers;
@@ -32,10 +31,9 @@ namespace ETLBoxDemo.Handler
 
         public async Task Handle(string request)
         {
-            var settings = JsonConvert.DeserializeObject<Dictionary<string, object>>(request);
-            
             try
             {
+                var settings = JsonConvert.DeserializeObject<Dictionary<string, object>>(request);
                 eContactDBManager.GetCompanySetting(settings);
 
                 //Customer

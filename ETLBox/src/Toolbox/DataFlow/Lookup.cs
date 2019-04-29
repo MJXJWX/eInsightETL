@@ -19,7 +19,7 @@ namespace ALE.ETLBox.DataFlow {
     /// </example>
     public class Lookup<TTransformationInput, TTransformationOutput, TSourceOutput>
         : GenericTask, ITask, IDataFlowTransformation<TTransformationInput, TTransformationOutput>
-        where TSourceOutput : new() {
+        /*where TSourceOutput : new() */{
 
         /* ITask Interface */
         public override string TaskType { get; set; } = "DF_LOOKUP";

@@ -1,4 +1,5 @@
-﻿using ALE.ETLBox.ControlFlow;
+﻿using ALE.ETLBox.ConnectionManager;
+using ALE.ETLBox.ControlFlow;
 using ALE.ETLBox.Helper;
 using System;
 using System.Collections.Generic;
@@ -32,6 +33,7 @@ namespace ALE.ETLBox.DataFlow {
         public string TableName { get; set; }
         public bool HasTableName => !String.IsNullOrWhiteSpace(TableName);
         public string Sql { get; set; }
+        public string ConnString { get; set; }
         public bool HasSql => !String.IsNullOrWhiteSpace(Sql);
         public string SqlForRead {
             get {
@@ -95,6 +97,10 @@ namespace ALE.ETLBox.DataFlow {
         }
 
         public void ExecuteAsync() {
+            if (!string.IsNullOrEmpty(ConnString))
+            {
+                this.ConnectionManager = new SqlConnectionManager(new ConnectionString(ConnString));
+            }
             NLogStart();
             ReadAll();
             Buffer.Complete();
@@ -103,6 +109,7 @@ namespace ALE.ETLBox.DataFlow {
 
         public void ReadAll() {
             new SqlTask() {
+                ConnectionManager = string.IsNullOrEmpty(ConnString) ? null : new SqlConnectionManager(new ConnectionString(ConnString)),
                 DisableLogging = true,
                 DisableExtension = true,
                 Sql = SqlForRead,

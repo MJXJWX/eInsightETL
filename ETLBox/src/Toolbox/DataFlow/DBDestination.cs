@@ -1,4 +1,5 @@
-﻿using ALE.ETLBox.ControlFlow;
+﻿using ALE.ETLBox.ConnectionManager;
+using ALE.ETLBox.ControlFlow;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -41,8 +42,9 @@ namespace ALE.ETLBox.DataFlow {
         NLog.Logger NLogger { get; set; }
         TypeInfo TypeInfo { get; set; }
 
-        ActionType ActionType { get; set; }
-        List<string> Keys { get; set; }
+        public string ConnString { get; set; }
+        public ActionType ActionType { get; set; }
+        public List<string> Keys { get; set; }
 
         public DBDestination() {
             InitObjects(DEFAULT_BATCH_SIZE);
@@ -59,10 +61,17 @@ namespace ALE.ETLBox.DataFlow {
             InitObjects(DEFAULT_BATCH_SIZE);
         }
 
-        public DBDestination(string tableName, ActionType actionType = ActionType.Insert, List<string> keys = null) {
-            ActionType = actionType;
+        //public DBDestination(string connectionString, string tableName, ActionType actionType = ActionType.Insert, List<string> keys = null) {
+        //    ConnString = connectionString;
+        //    ActionType = actionType;
+        //    TableName = tableName;
+        //    Keys = keys;
+        //    InitObjects(DEFAULT_BATCH_SIZE);
+        //}
+
+        public DBDestination(string tableName)
+        {
             TableName = tableName;
-            Keys = keys;
             InitObjects(DEFAULT_BATCH_SIZE);
         }
 
@@ -93,6 +102,10 @@ namespace ALE.ETLBox.DataFlow {
         }
 
         private void WriteBatch(TInput[] data) {
+            if (!string.IsNullOrEmpty(ConnString))
+            {
+                this.ConnectionManager = new SqlConnectionManager(new ConnectionString(ConnString));
+            }
             if (!HasDestinationTableDefinition) LoadTableDefinitionFromTableName();
             NLogStart();
             if (BeforeBatchWrite != null)
@@ -102,16 +115,24 @@ namespace ALE.ETLBox.DataFlow {
             switch (ActionType)
             {
                 case ActionType.Insert:
-                    new SqlTask(this, $"Execute Bulk Insert into {DestinationTableDefinition.Name}").BulkInsert(td, DestinationTableDefinition.Name);
+                    new SqlTask(this, $"Execute Bulk Insert into {DestinationTableDefinition.Name}") {
+                        ConnectionManager = string.IsNullOrEmpty(ConnString) ? null : new SqlConnectionManager(new ConnectionString(ConnString))
+                    }.BulkInsert(td, DestinationTableDefinition.Name);
                     break;
                 case ActionType.Update:
-                    new SqlTask(this, $"Execute Bulk Update {DestinationTableDefinition.Name}").BulkUpdate(td, DestinationTableDefinition.Name);
+                    new SqlTask(this, $"Execute Bulk Update {DestinationTableDefinition.Name}") {
+                        ConnectionManager = string.IsNullOrEmpty(ConnString) ? null : new SqlConnectionManager(new ConnectionString(ConnString))
+                    }.BulkUpdate(td, DestinationTableDefinition.Name);
                     break;
                 case ActionType.Upsert:
-                    new SqlTask(this, $"Execute Bulk Upsert {DestinationTableDefinition.Name}").BulkUpsert(td, DestinationTableDefinition.Name, Keys);
+                    new SqlTask(this, $"Execute Bulk Upsert {DestinationTableDefinition.Name}") {
+                        ConnectionManager = string.IsNullOrEmpty(ConnString) ? null : new SqlConnectionManager(new ConnectionString(ConnString))
+                    }.BulkUpsert(td, DestinationTableDefinition.Name, Keys);
                     break;
                 default:
-                    new SqlTask(this, $"Execute Bulk Insert into {DestinationTableDefinition.Name}").BulkInsert(td, DestinationTableDefinition.Name);
+                    new SqlTask(this, $"Execute Bulk Insert into {DestinationTableDefinition.Name}") {
+                        ConnectionManager = string.IsNullOrEmpty(ConnString) ? null : new SqlConnectionManager(new ConnectionString(ConnString))
+                    }.BulkInsert(td, DestinationTableDefinition.Name);
                     break;
             }
             
