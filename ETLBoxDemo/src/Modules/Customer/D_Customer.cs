@@ -28,9 +28,23 @@ namespace ETLBoxDemo.src.Modules.Customer
         public string AllowSMS{ get; set; }
         public string AllowPhone{ get; set; }
         public string Membership { get; set; }
-        public string ExternalProfileID2{ get; set; }
-        public string VIPID{ get; set; }
-        public string VIPCode{ get; set; }
-        public string Nationality{ get; set; }
+        public string ExternalProfileID2 { get; set; }
+        public string VIPID { get; set; }
+        public string VIPCode { get; set; }
+        public string Nationality { get; set; }
+        
+        public string EmailStatus { get; set; }
+        public string Email { get; set; }
+        public string EmailHash { get; set; }
+        public string EmailDomainHash { get; set; }
+
+        public string PhoneNumber { get; set; }
+        public string CellPhoneNumber { get; set; }
+        public string HomePhoneNumber { get; set; }
+        public string FaxNumber { get; set; }
+        public string BusinessPhoneNumber { get; set; }
+
+        public string PhoneExtention { get; set; }
+        
     }
 }

@@ -236,6 +236,299 @@ namespace ETLBoxDemo.src.Manager
 
         }
 
+		public static void DFT_MoveBirthday()
+        {
+            var sourceCon = PMSDBManager.GetPMSConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var tableName = "dbo.D_Customer_Profile";
+            var sql = PMSDBManager.SQL_MoveBirthday;
+            var primaryKeys = new List<string>() { "CustomerID" };
+            var properties = new List<string>() { "CustomerID", "DOB"};
+
+            new DataFlowTask<D_Customer_Profile>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+        }
+
+        public static void DFT_UpdatePreferredLanguageUnderPMS_Profiles()
+        {
+            var sourceCon = PMSDBManager.GetPMSConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var tableName = "dbo.PMS_Profiles";
+            var sql = PMSDBManager.SQL_GetPreferredLanguage;
+            var primaryKeys = new List<string>() { "PK_Profiles" };
+            var properties = new List<string>() { "PK_Profiles", "PrimaryLanguage" };
+
+            new DataFlowTask<PMS_Profiles>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+        }
+
+        public static void DFT_RemoveInactiveEmailRecords()
+        {
+            var sourceCon = CRMDBManager.GetCRMConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var tableName = "dbo.D_Customer";
+            var sql = CRMDBManager.SQL_GetInactiveEmailQuery;
+            var primaryKeys = new List<string>() { "FK_Profiles" };
+            var properties = new List<string>() { "FK_Profiles", "EmailStatus", "Email" };
+
+            new DataFlowTask<D_Customer>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+        }
+
+        public static void DFT_UpdateEmailUnderD_Customer()
+        {
+            var sourceCon = PMSDBManager.GetPMSConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var tableName = "dbo.D_Customer";
+            var sql = PMSDBManager.SQL_GetEmailQuery;
+            var lsql = CRMDBManager.SQL_GetGlobalCustomerIDUnderPMS_Profile_Mapping;
+            
+             var keys = new Dictionary<string, string>();
+            keys.Add("FK_Profiles", "PK_Profiles");
+            var lMapping = new Dictionary<string, string>();
+            lMapping.Add("GlobalCustomerID", "CustomerID");
+            new DataFlowTask<D_Customer, D_Customer, PMS_Profile_Mapping>().runTask(sourceCon, destinationCon, destinationCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" });
+
+        }
+
+        public  static void DFT_UpdatePhoneNumbersUnderD_Customer()
+        {
+            var sourceCon = PMSDBManager.GetPMSConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var tableName = "dbo.D_Customer";
+            var sql = PMSDBManager.SQL_GetPhoneQuery;
+            var lsql = CRMDBManager.SQL_GetGlobalCustomerIDUnderPMS_Profile_Mapping;
+
+            var keys = new Dictionary<string, string>();
+            keys.Add("FK_Profiles", "PK_Profiles");
+            var lMapping = new Dictionary<string, string>();
+            lMapping.Add("GlobalCustomerID", "CustomerID");
+            new DataFlowTask<D_Customer, D_Customer, PMS_Profile_Mapping>().runTask(sourceCon, destinationCon, destinationCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" });
+        }
+
+        public static void DFT_UpdatePhoneExtUnderD_Customer()
+        {
+            var sourceCon = PMSDBManager.GetPMSConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var tableName = "dbo.D_Customer";
+            var sql = PMSDBManager.SQL_GetPhoneExtQuery;
+            var lsql = CRMDBManager.SQL_GetGlobalCustomerIDUnderPMS_Profile_Mapping;
+
+            var keys = new Dictionary<string, string>();
+            keys.Add("FK_Profiles", "PK_Profiles");
+            var lMapping = new Dictionary<string, string>();
+            lMapping.Add("GlobalCustomerID", "CustomerID");
+            new DataFlowTask<D_Customer, D_Customer, PMS_Profile_Mapping>().runTask(sourceCon, destinationCon, destinationCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" });
+        }
+
+        public static void DFT_UpdateEmailAndPhoneUnderD_Customer()
+        {
+            var sourceCon = PMSDBManager.GetPMSConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var tableName = "dbo.D_Customer";
+            var sql = PMSDBManager.SQL_GetEmailAndPhoneQuery;
+            var lsql = CRMDBManager.SQL_GetGlobalCustomerIDUnderPMS_Profile_Mapping;
+
+            var keys = new Dictionary<string, string>();
+            keys.Add("FK_Profiles", "PK_Profiles");
+            var lMapping = new Dictionary<string, string>();
+            lMapping.Add("GlobalCustomerID", "CustomerID");
+            new DataFlowTask<D_Customer, D_Customer, PMS_Profile_Mapping>().runTask(sourceCon, destinationCon, destinationCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" });
+        }
+
+        public static void DFT_UpdateD_Customer_Email()
+        {
+            var sourceCon = PMSDBManager.GetPMSConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var tableName = "dbo.D_Customer";
+            var sql = PMSDBManager.SQL_GetD_Customer_EmailQuery;
+            var lsql = CRMDBManager.SQL_GetDataUnderPMS_Profile_Mapping;
+
+            var keys = new Dictionary<string, string>();
+            keys.Add("FK_Profiles", "FK_Profiles");
+            var lMapping = new Dictionary<string, string>();
+            lMapping.Add("GlobalCustomerID", "CustomerID");
+            new DataFlowTask<D_Customer_Email, D_Customer_Email, PMS_Profile_Mapping>().runTask(sourceCon, destinationCon, destinationCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "PK_ContactMethod" });
+        }
+
+        public static void DFT_UpSertDataIntoD_Customer_Email()
+        {
+            var sourceCon = CRMDBManager.GetCRMConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var tableName = "dbo.D_Customer_Email";
+            var sql = CRMDBManager.SQL_GetDataFromETL_D_Customer_Email_Staging;
+            var primaryKeys = new List<string>() { "CustomerID", "EmailType" };
+            var properties = new List<string>() { "CustomerID", "EmailType", "EmailStatus", "Email", "EmailDomainHash", "email_id" };
+
+            new DataFlowTask<D_Customer_Email>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+        }
+
+        public static void DFT_MoveEmailListTypeOfData()
+        {
+            var sourceCon = CRMDBManager.GetCRMConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var lookUpCon = PMSDBManager.GetPMSConnectionString();
+            var tableName = "dbo.D_Customer_UDFFields";
+            var sql = CRMDBManager.SQL_GetDataETL_Temp_ProfilesAndD_Customer;
+            var lsql = PMSDBManager.SQL_EmailListTypeOfData;
+
+            var keys = new Dictionary<string, string>();
+            keys.Add("FK_Internal", "PK_Profiles");
+            var lMapping = new Dictionary<string, string>();
+            lMapping.Add("ColumnName", "UDFFieldName");
+            lMapping.Add("UDFValue", "UDFFieldValue");
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID" });
+        }
+
+        public static void DFT_MoveUDF31TypeOfData()
+        {
+            var sourceCon = CRMDBManager.GetCRMConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var lookUpCon = PMSDBManager.GetPMSConnectionString();
+            var tableName = "dbo.D_Customer_UDFFields";
+            var sql = CRMDBManager.SQL_GetDataETL_Temp_ProfilesAndD_Customer;
+            var lsql = PMSDBManager.SQL_UDF31TypeOfData;
+
+            var keys = new Dictionary<string, string>();
+            keys.Add("FK_Internal", "PK_Profiles");
+            var lMapping = new Dictionary<string, string>();
+            lMapping.Add("ColumnName", "UDFFieldName");
+            lMapping.Add("UDFValue", "UDFFieldValue");
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" });
+        }
+
+        public static void DFT_MoveKanaLastName()
+        {
+            var sourceCon = CRMDBManager.GetCRMConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var lookUpCon = PMSDBManager.GetPMSConnectionString();
+            var tableName = "dbo.D_Customer_UDFFields";
+            var sql = CRMDBManager.SQL_GetDataETL_Temp_ProfilesAndD_Customer;
+            var lsql = PMSDBManager.SQL_KanaLastNameTypeOfData;
+
+            var keys = new Dictionary<string, string>();
+            keys.Add("FK_Internal", "PK_Profiles");
+            var lMapping = new Dictionary<string, string>();
+            lMapping.Add("ColumnName", "UDFFieldName");
+            lMapping.Add("UDFValue", "UDFFieldValue");
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" });
+        }
+
+        public static void DFT_MoveKanaFirstName()
+        {
+            var sourceCon = CRMDBManager.GetCRMConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var lookUpCon = PMSDBManager.GetPMSConnectionString();
+            var tableName = "dbo.D_Customer_UDFFields";
+            var sql = CRMDBManager.SQL_GetDataETL_Temp_ProfilesAndD_Customer;
+            var lsql = PMSDBManager.SQL_KanaFirstNameTypeOfData;
+
+            var keys = new Dictionary<string, string>();
+            keys.Add("FK_Internal", "PK_Profiles");
+            var lMapping = new Dictionary<string, string>();
+            lMapping.Add("ColumnName", "UDFFieldName");
+            lMapping.Add("UDFValue", "UDFFieldValue");
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" });
+        }
+
+        public static void DFT_MoveNKanaLastName()
+        {
+            var sourceCon = CRMDBManager.GetCRMConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var lookUpCon = PMSDBManager.GetPMSConnectionString();
+            var tableName = "dbo.D_Customer_UDFFields";
+            var sql = CRMDBManager.SQL_GetDataETL_Temp_ProfilesAndD_Customer;
+            var lsql = PMSDBManager.SQL_NKanaLastNameTypeOfData;
+
+            var keys = new Dictionary<string, string>();
+            keys.Add("FK_Internal", "PK_Profiles");
+            var lMapping = new Dictionary<string, string>();
+            lMapping.Add("ColumnName", "UDFFieldName");
+            lMapping.Add("UDFValue", "UDFFieldValue");
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" });
+        }
+
+        public static void DFT_MoveNKanaFirstName()
+        {
+            var sourceCon = CRMDBManager.GetCRMConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var lookUpCon = PMSDBManager.GetPMSConnectionString();
+            var tableName = "dbo.D_Customer_UDFFields";
+            var sql = CRMDBManager.SQL_GetDataETL_Temp_ProfilesAndD_Customer;
+            var lsql = PMSDBManager.SQL_NKanaFirstNameTypeOfData;
+
+            var keys = new Dictionary<string, string>();
+            keys.Add("FK_Internal", "PK_Profiles");
+            var lMapping = new Dictionary<string, string>();
+            lMapping.Add("ColumnName", "UDFFieldName");
+            lMapping.Add("UDFValue", "UDFFieldValue");
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" });
+        }
+
+        public static void DFT_MoveNKanaName()
+        {
+            var sourceCon = CRMDBManager.GetCRMConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var lookUpCon = PMSDBManager.GetPMSConnectionString();
+            var tableName = "dbo.D_Customer_UDFFields";
+            var sql = CRMDBManager.SQL_GetDataETL_Temp_ProfilesAndD_Customer;
+            var lsql = PMSDBManager.SQL_NKanaNameTypeOfData;
+
+            var keys = new Dictionary<string, string>();
+            keys.Add("FK_Internal", "PK_Profiles");
+            var lMapping = new Dictionary<string, string>();
+            lMapping.Add("ColumnName", "UDFFieldName");
+            lMapping.Add("UDFValue", "UDFFieldValue");
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" });
+        }
+
+        public static void DFT_MoveUDFC37TypeOfData()
+        {
+            var sourceCon = CRMDBManager.GetCRMConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var lookUpCon = PMSDBManager.GetPMSConnectionString();
+            var tableName = "dbo.D_Customer_UDFFields";
+            var sql = CRMDBManager.SQL_GetDataETL_Temp_ProfilesAndD_Customer;
+            var lsql = PMSDBManager.SQL_UDFC37TypeOfData;
+
+            var keys = new Dictionary<string, string>();
+            keys.Add("FK_Internal", "PK_Profiles");
+            var lMapping = new Dictionary<string, string>();
+            lMapping.Add("ColumnName", "UDFFieldName");
+            lMapping.Add("UDFValue", "UDFFieldValue");
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" });
+        }
+
+        public static void DFT_MoveAlways_Email_DolioData()
+        {
+            var sourceCon = CRMDBManager.GetCRMConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var lookUpCon = PMSDBManager.GetPMSConnectionString();
+            var tableName = "dbo.D_Customer_UDFFields";
+            var sql = CRMDBManager.SQL_GetDataETL_Temp_ProfilesAndD_Customer;
+            var lsql = PMSDBManager.SQL_UDFDataForAlways_Email_Folio;
+
+            var keys = new Dictionary<string, string>();
+            keys.Add("FK_Internal", "PK_Profiles");
+            var lMapping = new Dictionary<string, string>();
+            lMapping.Add("ColumnName", "UDFFieldName");
+            lMapping.Add("UDFValue", "UDFFieldValue");
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" });
+        }
+
+        public static void DFT_MoveGHA_EmailData()
+        {
+            var sourceCon = CRMDBManager.GetCRMConnectionString();
+            var destinationCon = CRMDBManager.GetCRMConnectionString();
+            var lookUpCon = PMSDBManager.GetPMSConnectionString();
+            var tableName = "dbo.D_Customer_UDFFields";
+            var sql = CRMDBManager.SQL_GetDataETL_Temp_ProfilesAndD_Customer;
+            var lsql = PMSDBManager.SQL_UDFDataForGHA_Email;
+
+            var keys = new Dictionary<string, string>();
+            keys.Add("FK_Internal", "PK_Profiles");
+            var lMapping = new Dictionary<string, string>();
+            lMapping.Add("ColumnName", "UDFFieldName");
+            lMapping.Add("UDFValue", "UDFFieldValue");
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" });
+        }
 
     }
 }

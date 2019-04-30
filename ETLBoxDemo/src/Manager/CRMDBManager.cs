@@ -130,22 +130,216 @@ namespace ETLBoxDemo.src.Manager
                                                                             FROM   dbo.PMS_PROFILE_MAPPING AS pm WITH ( NOLOCK )
                                                                             WHERE  pm.FK_Profiles = P.PK_Profiles );";
 
+        public static readonly string SQL_UpdatePreferredlanguageUnderD_Customer =
+                @"UPDATE d SET d.Languages = p.PrimaryLanguage
+                        FROM dbo.D_CUSTOMER AS d
+                        INNER JOIN dbo.PMS_Profiles AS p With(Nolock)
+                        ON d.PK_Profiles = p.PK_Profiles
+                        INNER JOIN dbo.ETL_TEMP_PROFILES_D_CUSTOMER AS ed With(Nolock)
+                        ON ed.PK_Profiles = p.PK_Profiles";
 
+        public static readonly string SQL_UpdateAllAddressFieldsToBlank =
+                @"UPDATE d SET d.Address1 = '',
+                                d.Address2 = '',
+                                d.City = '',
+                                d.StateProvinceCode = '',
+                                d.CountryCode = '',
+	                            d.ZipCode = '',
+	                            d.AddressStatus = 0,
+	                            d.AddressType = '',
+	                            d.DivisionCode = '',
+	                            d.RegionCode = '',
+	                            d.ZipCodePlus4 = ''
+                            FROM dbo.D_CUSTOMER AS d
+                                INNER JOIN dbo.ETL_TEMP_PROFILES_D_CUSTOMER AS e WITH (NOLOCK)
+                                    ON d.PK_Profiles = e.PK_Profiles;";
 
+        public static readonly string SQL_GetInactiveEmailQuery =
+                @"SELECT  cm.FK_Profiles, 2 as EmailStatus, '' as Email FROM  dbo.PMS_ContactMethod cm with (nolock) 
+                            inner join dbo.ETL_TEMP_PROFILES_D_CUSTOMER AS e WITH (NOLOCK) 
+                            ON cm.FK_Profiles = e.PK_Profiles 
+                            WHERE cm.CMType = 'IP' 
+                            and cm.CMCategory = 'Email' 
+                            and IsPrimary = 1 
+                            and cm.RecordStatus = 'Inactive'";
 
+        public static readonly string SQL_UpdateAddressTypeUnderD_Customer =
+                @"UPDATE dbo.D_CUSTOMER
+                            SET AddressType = 'W'
+                            WHERE AddressType = 'U' AND SourceID = 1";
 
+        public static readonly string SQL_UpdateAllPhoneFieldsToBlank =
+                @"UPDATE d SET d.PhoneNumber = '',
+                        d.HomePhoneNumber = '',
+                        d.CellPhoneNumber = '',
+                        d.FaxNumber = '',
+                        d.BusinessPhoneNumber = ''
+                        FROM dbo.D_CUSTOMER AS d
+                            INNER JOIN dbo.ETL_TEMP_PROFILES_D_CUSTOMER AS e WITH (NOLOCK)
+                                ON d.PK_Profiles = e.PK_Profiles;";
+
+        public static readonly string SQL_UpdatePhonesUnderD_Customer =
+                @"update C 
+                    set C.HomePhoneNumber = P.PhoneValue, DedupeCheck = 0, UpdateDate = getdate()
+                    from D_CUSTOMER C INNER JOIN ETL_TEMP_D_CUSTOMER_PHONE P on C.CustomerID = P.CustomerID
+                    and P.PhoneType = 'HomePhoneNumber'
+
+                    update C 
+                    set C.PhoneNumber = P.PhoneValue, DedupeCheck = 0, UpdateDate = getdate()
+                    from D_CUSTOMER C INNER JOIN ETL_TEMP_D_CUSTOMER_PHONE P on C.CustomerID = P.CustomerID
+                    and P.PhoneType = 'PhoneNumber'
+
+                    update C 
+                    set C.CellPhoneNumber = P.PhoneValue, DedupeCheck = 0, UpdateDate = getdate()
+                    from D_CUSTOMER C INNER JOIN ETL_TEMP_D_CUSTOMER_PHONE P on C.CustomerID = P.CustomerID
+                    and P.PhoneType = 'CellPhoneNumber'
+
+                    update C 
+                    set C.BusinessPhoneNumber = P.PhoneValue
+                    from D_CUSTOMER C INNER JOIN ETL_TEMP_D_CUSTOMER_PHONE P on C.CustomerID = P.CustomerID
+                    and P.PhoneType = 'BusinessPhoneNumber'
+
+                    update C 
+                    set C.FaxNumber = P.PhoneValue
+                    from D_CUSTOMER C INNER JOIN ETL_TEMP_D_CUSTOMER_PHONE P on C.CustomerID = P.CustomerID
+                    and P.PhoneType = 'FaxNumber'
+                    ";
+
+        public static readonly string SQL_GetGlobalCustomerIDUnderPMS_Profile_Mapping =
+                @"SELECT pm.CustomerID ,
+                           pm.GlobalCustomerID ,
+                           pm.FK_Profiles
+                    FROM   PMS_PROFILE_MAPPING AS pm WITH ( NOLOCK )
+                           INNER JOIN dbo.ETL_TEMP_PROFILES_D_CUSTOMER AS p WITH ( NOLOCK ) ON pm.FK_Profiles = p.PK_Profiles;";
+
+        public static readonly string SQL_GetDataUnderPMS_Profile_Mapping =
+                @"Select CustomerID, GlobalCustomerID, FK_Profiles from PMS_PROFILE_MAPPING with (nolock)";
+
+        public static readonly string SQL_GetContactMethodInactiveRecords =
+                @"SELECT  cm.PK_ContactMethod FROM  dbo.PMS_ContactMethod cm with (nolock)  WHERE cm.RecordStatus = 'Inactive'  and (cm.LastUpdated >= '2012-03-12 20:50:00' OR cm.DateInserted >= '2012-03-12 20:50:00')  ";
+
+        public static readonly string SQL_DeleteD_Customer_Email = @"DELETE FROM D_Customer_Email WHERE PK_ContactMethod = @PK_ContactMethod";
+
+        public static readonly string SQL_GetDataFromETL_D_Customer_Email_Staging =
+                @"SELECT e.Customerid ,
+                           e.email ,
+                           e.emailstatus ,
+                           e.emailtype ,
+                           e.EmailDomainHash ,
+                           em.id AS email_id
+                    FROM   dbo.ETL_D_CUSTOMER_EMAIL_STAGING AS e WITH ( NOLOCK )
+                           LEFT JOIN dbo.email AS em WITH ( NOLOCK ) ON ISNULL(e.email, '') = ISNULL(
+                                                                                                  em.email_address ,
+                                                                                                  '');";
+
+        public static readonly string SQL_UpdateOptInOptOut =
+                @"IF OBJECT_ID('Tempdb..#customers_optout') IS NOT NULL
+                        DROP TABLE #customers_optout;
+                    IF OBJECT_ID('Tempdb..#customers_optin') IS NOT NULL
+                        DROP TABLE #customers_optin;
+
+                    SELECT DISTINCT d.CustomerID
+                    INTO   #customers_optout
+                    FROM   dbo.D_CUSTOMER AS d WITH ( NOLOCK )
+                    WHERE  d.SourceID = 1
+                            AND EXISTS (   SELECT 1
+                                            FROM   dbo.PMS_ProfilePolicies WITH ( NOLOCK )
+                                            WHERE  FK_PolicyTypes = 3
+                                                    AND AttributeName = 'AllowEmail'
+                                                    AND IntegerValue = 0
+                                                    AND d.PK_Profiles = FK_Profiles
+                                                    AND d.EmailStatus IN ( 1, 2, 4 ));
+
+                    CREATE NONCLUSTERED INDEX IX_customers_optout_CustomerID
+                        ON #customers_optout ( CustomerID );
+
+                    UPDATE d
+                    SET    d.EmailStatus = 5
+                    FROM   dbo.D_CUSTOMER AS d
+                            INNER JOIN #customers_optout AS c WITH ( NOLOCK ) ON d.CustomerID = c.CustomerID;
+
+                    UPDATE e
+                    SET    e.EmailStatus = 5
+                    FROM   dbo.D_CUSTOMER_EMAIL AS e
+                            INNER JOIN #customers_optout AS c WITH ( NOLOCK ) ON e.CustomerID = c.CustomerID;
+
+                    SELECT DISTINCT d.CustomerID
+                    INTO   #customers_optin
+                    FROM   dbo.D_CUSTOMER AS d WITH ( NOLOCK )
+                    WHERE  d.SourceID = 1
+                            AND EXISTS (   SELECT 1
+                                            FROM   dbo.PMS_ProfilePolicies WITH ( NOLOCK )
+                                            WHERE  FK_PolicyTypes = 3
+                                                    AND AttributeName = 'AllowEmail'
+                                                    AND IntegerValue = 1
+                                                    AND d.PK_Profiles = FK_Profiles
+                                                    AND d.EmailStatus IN ( 5 ))
+                            AND NOT EXISTS (   SELECT 1
+                                                FROM   dbo.ECONTACT_CUSTOMER_UNSUBSCRIBED WITH ( NOLOCK )
+                                                WHERE  d.Email = EmailAddress );
+
+                    CREATE NONCLUSTERED INDEX IX_customers_optin_CustomerID
+                        ON #customers_optin ( CustomerID );
+
+                    UPDATE d
+                    SET    d.EmailStatus = 1
+                    FROM   dbo.D_CUSTOMER AS d
+                            INNER JOIN #customers_optin AS c WITH ( NOLOCK ) ON d.CustomerID = c.CustomerID;
+
+                    UPDATE e
+                    SET    e.EmailStatus = 1
+                    FROM   dbo.D_CUSTOMER_EMAIL AS e
+                            INNER JOIN #customers_optin AS c WITH ( NOLOCK ) ON e.CustomerID = c.CustomerID;";
+
+        public static readonly string SQL_GetDataETL_Temp_ProfilesAndD_Customer =
+                @"select d.CustomerID, d.PK_Profiles from D_Customer as d with(nolock) 
+                    inner join dbo.ETL_Temp_Profiles_D_Customer as p with(nolock) 
+                    ON d.PK_Profiles = p.PK_Profiles";
+
+        public static readonly string SQL_UpdateVIPLevel =
+                @"UPDATE d
+                    SET d.VIPLevel = ISNULL(l.VIPCode, ISNULL(u.UDFFieldValue, ''))
+                    FROM dbo.D_CUSTOMER AS d
+                        INNER JOIN dbo.D_CUSTOMER_UDFFIELDS AS u WITH (NOLOCK)
+                            ON d.CustomerID = u.CustomerID
+                               AND u.UDFFieldName = 'UDFC31'
+                        LEFT JOIN V_L_VIPLevel AS l WITH (NOLOCK)
+                            ON l.VIPName = u.UDFFieldValue
+                    WHERE (
+                              ISNULL(d.VIPLevel, '') <> ISNULL(l.VIPCode, ISNULL(u.UDFFieldValue, ''))
+                              AND
+                              (
+                                  d.InsertDate >= DATEADD(HOUR, -6, GETDATE())
+                                  AND d.InsertDate <= GETDATE()
+                              )
+                              OR
+                              (
+                                  d.UpdateDate >= DATEADD(HOUR, -6, GETDATE())
+                                  AND d.UpdateDate <= GETDATE()
+                              )
+                              OR
+                              (
+                                  u.InsertDate >= DATEADD(HOUR, -6, GETDATE())
+                                  AND u.InsertDate <= GETDATE()
+                              )
+                              OR
+                              (
+                                  u.UpdateDate >= DATEADD(HOUR, -6, GETDATE())
+                                  AND u.UpdateDate <= GETDATE()
+                              )
+                          );";
 
         public static string CreateSourceCode(string companyId, string sourceName, string subSourceName, byte isShowdropdown, int dedupPriority, int ETLProcess)
         {
             string sql = string.Format(SQL_CreateSourceCode, companyId, sourceName, subSourceName, isShowdropdown, dedupPriority, ETLProcess);
-            return SQLHelper.GetDbValues(GetCRMConnectionString(), $"sqlCreateSourceCode_{subSourceName.Trim()}", sql, null).FirstOrDefault();
+            return SQLHelper.GetDbValues(GetCRMConnectionString(), $"sqlCreateSourceCode_{subSourceName.Trim()}", sql, null).FirstOrDefault()?["SourceID"];
         }
 
         public static string GetLastCheckTime(string sourceTable)
         {
             string sqlGetLastCheckTime = $@"SELECT ISNULL(MAX(DriverExecutionDate), DATEADD(yy,-10,GETDATE())) AS LastCheckTime FROM ETL_PACKAGE_LOG WHERE Component = '{sourceTable}' AND EndTime IS NOT NULL";
-            List<string> sqlGetLastCheckTimeList = SQLHelper.GetDbValues(GetCRMConnectionString(), $"sqlGet{sourceTable}LastCheckTime", sqlGetLastCheckTime, null);
-            return sqlGetLastCheckTimeList.FirstOrDefault();
+            List<Dictionary<string, string>> sqlGetLastCheckTimeList = SQLHelper.GetDbValues(GetCRMConnectionString(), $"sqlGet{sourceTable}LastCheckTime", sqlGetLastCheckTime, null);
+            return sqlGetLastCheckTimeList.FirstOrDefault()?["LastCheckTime"];
         }
 
         public static void DeleteGlobalSpecialRequestsForUpdatedProfiles()
@@ -155,15 +349,28 @@ namespace ETLBoxDemo.src.Manager
 
         public static void MoveExistingSpecialRequests()
         {
-            List<string> SQL_GetDataFromPMS_SpecialRequestsList = SQLHelper.GetDbValues(GetCRMConnectionString(), "SQL_GetDataFromPMS_SpecialRequests", SQL_GetDataFromPMS_SpecialRequests, null);
+            List<Dictionary<string, string>> SQL_GetDataFromPMS_SpecialRequestsList = SQLHelper.GetDbValues(GetCRMConnectionString(), "SQL_GetDataFromPMS_SpecialRequests", SQL_GetDataFromPMS_SpecialRequests, null);
             for (int i = 0; i < SQL_GetDataFromPMS_SpecialRequestsList.Count; i++)
             {
-                String[] strArr = SQL_GetDataFromPMS_SpecialRequestsList[i].Split(",");
+                Dictionary<string, string> dictionary = SQL_GetDataFromPMS_SpecialRequestsList[i];
                 List<QueryParameter> DeleteParameter = new List<QueryParameter>()
-                    {   new QueryParameter("FK_Reservations", "string", strArr[0]),
-                        new QueryParameter("FK_Profiles", "string", strArr[1])
+                    {   new QueryParameter("FK_Reservations", "string", dictionary["FK_Reservations"]),
+                        new QueryParameter("FK_Profiles", "string", dictionary["FK_Profiles"])
                     };
                 SQLHelper.DeleteTableValue(GetCRMConnectionString(), "SQL_DeleteSpecialRequests", SQL_DeleteSpecialRequests, DeleteParameter);
+            }
+        }
+
+        public static void D_CustomerEmailMaintenance()
+        {
+            List<Dictionary<string, string>> SQL_GetContactMethodInactiveRecordsList = SQLHelper.GetDbValues(GetCRMConnectionString(), "SQL_GetContactMethodInactiveRecords", SQL_GetContactMethodInactiveRecords, null);
+            for (int i = 0; i < SQL_GetContactMethodInactiveRecordsList.Count; i++)
+            {
+                Dictionary<string, string> dictionary = SQL_GetContactMethodInactiveRecordsList[i];
+                List<QueryParameter> DeleteParameter = new List<QueryParameter>()
+                    {   new QueryParameter("PK_ContactMethod", "string", dictionary["PK_ContactMethod"])
+                    };
+                SQLHelper.DeleteTableValue(GetCRMConnectionString(), "SQL_DeleteSpecialRequests", SQL_DeleteD_Customer_Email, DeleteParameter);
             }
         }
 
@@ -182,8 +389,40 @@ namespace ETLBoxDemo.src.Manager
             SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_InsertPMSProfileMapping", SQL_InsertPMSProfileMapping, null);
         }
 
+        public static void UpdatePreferredlanguageUnderD_Customer()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_UpdatePreferredlanguageUnderD_Customer", SQL_UpdatePreferredlanguageUnderD_Customer, null);
+        }
 
+        public static void UpdateAllAddressFieldsToBlank()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_UpdateAllAddressFieldsToBlank", SQL_UpdateAllAddressFieldsToBlank, null);
+        }
 
+        public static void UpdateAddressTypeUnderD_Customer()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_UpdateAddressTypeUnderD_Customer", SQL_UpdateAddressTypeUnderD_Customer, null);
+        }
+
+        public static void UpdateAllPhoneFieldsToBlank()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_UpdateAllPhoneFieldsToBlank", SQL_UpdateAllPhoneFieldsToBlank, null);
+        }
+
+        public static void UpdatePhonesUnderD_Customer()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_UpdatePhonesUnderD_Customer", SQL_UpdatePhonesUnderD_Customer, null);
+        }
+
+        public static void UpdateOptInOptOut()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_UpdateOptInOptOut", SQL_UpdateOptInOptOut, null);
+        }
+
+        public static void UpdateVIPLevel()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_UpdateVIPLevel", SQL_UpdateVIPLevel, null);
+        }
 
         public static void DeleteOrphanRecords()
         {

@@ -301,6 +301,174 @@ namespace ETLBoxDemo.src.Manager
                         e.AnonymizationStatus
                         FROM dbo.Profiles_Ext e With(Nolock) WHERE  (e.LastUpdated >= '2012-03-12 20:50:00' OR e.DateInserted >= '2012-03-12 20:50:00') and e.LastUpdated <= '2012-01-24 11:06:00' and e.DateInserted <= '2012-01-24 11:06:00'";
 
+		public static readonly string SQL_MoveBirthday =
+            @"SELECT p.PK_Profiles, 
+	               Convert(nvarchar(20), LTRIM(RTRIM(p.DOBMonth)) + '/' + LTRIM(RTRIM(p.DOBDayOfMonth)) + '/' + LTRIM(RTRIM(p.DOBYear))) as DOB
+                    FROM dbo.V_Profiles p WITH (NOLOCK) 
+                    inner join dbo.ETL_TEMP_Profiles as e with(nolock) on e.PK_Profiles = p.PK_Profiles 
+                    WHERE p.RecordStatus = 'Active' 
+                    AND p.ExternalProfileID <> '' 
+                    AND p.DOBDayOfMonth IS NOT NULL AND p.DOBMonth IS NOT NULL AND p.DOBYear IS NOT null";
+
+        public static readonly string SQL_GetPreferredLanguage =
+            @"SELECT p.PK_Profiles,
+                    CONVERT(NVARCHAR(50), p.PrimaryLanguage) AS PrimaryLanguage
+                    FROM dbo.V_Profiles AS p WITH (NOLOCK)
+                    INNER JOIN dbo.ETL_TEMP_PROFILES AS ep WITH (NOLOCK)
+                    ON p.PK_Profiles = ep.PK_Profiles;";
+
+        public static readonly string SQL_GetEmailQuery =
+              @"SELECT cm.FK_Profiles AS PK_Profiles, 
+                CASE WHEN cm.CMData LIKE '%@%'  and  'PROD'  IN ('QA','TeamDev','BETA') 
+                THEN Convert(varchar(70), SUBSTRING(LTRIM(RTRIM(cm.CMData)), 1, CHARINDEX('@', LTRIM(RTRIM(cm.CMData))))+'cendyn17.com') 
+                ELSE Convert(varchar(70), LTRIM(RTRIM(cm.CMData))) END as Email, 
+                0 as EmailStatus,
+                CHECKSUM(cm.CMData) as EmailHash, 
+                CHECKSUM(LTRIM(RTRIM(SUBSTRING(cm.CMData, CHARINDEX('@',cm.CMData)+(1),LEN(cm.CMData))))) as EmailDomainHash 
+                FROM    dbo.V_ContactMethod cm with (nolock) 
+                inner join dbo.ETL_TEMP_Profiles as p with(nolock) ON cm.FK_Profiles = p.PK_Profiles 
+                WHERE  isnull(cm.recordstatus,'Active') = 'Active' and isnull(cm.Isprimary,1) = 1 and cm.CMType = 'IP'";
+
+        public static readonly string SQL_GetPhoneQuery =
+            @"SELECT cm1.FK_Profiles AS PK_Profiles,
+                        CAST( left(cm1.PhonePrimary,20)  AS NVARCHAR(50)) as PhoneNumber,
+                        CAST( left(cm1.PhoneOther,20)  AS NVARCHAR(50)) as CellPhoneNumber,
+                        CAST( left(cm1.PhoneHome,20)  AS NVARCHAR(50)) as HomePhoneNumber,
+                        CAST( left(cm1.PhoneFax, 20)  AS NVARCHAR(50)) as FaxNumber,
+                        CAST(left(cm1.PhoneBusiness, 20) AS NVARCHAR(50)) AS BusinessPhoneNumber FROM  (SELECT  FK_Profiles,
+                                [PhonePrimary],
+		                        [PhoneOther],
+                                [PhoneFax],
+                                [PhoneBusiness],
+                                [PhoneHome]  FROM ( SELECT    cm.FK_Profiles,
+                                            ISNULL(cm.CMType, '') + ISNULL(cm.CMCategory, '') AS CMTypeCMCategory,
+                                            cm.CMData FROM    dbo.V_ContactMethod cm with (nolock) 
+					                        inner join dbo.ETL_TEMP_Profiles as p with(nolock) on cm.FK_Profiles = p.PK_Profiles
+                        WHERE  isnull(cm.recordstatus,'Active') = 'Active' and cm.CMType = 'Phone' and cm.CMCategory IN ('Primary', 'Home','Other','Business','Fax') ) AS Unpivoted 
+                                PIVOT 
+                                ( MAX(CMData) FOR CMTypeCMCategory IN ( [PhonePrimary], [PhoneOther], [PhoneFax], [PhoneBusiness], [PhoneHome] ) ) 
+                                AS ";
+
+        public static readonly string SQL_GetPhoneExtQuery =
+                @"SELECT cm.FK_Profiles AS PK_Profiles, CAST(left(cm.CMExtraData,10) AS NVARCHAR(10)) as PhoneExtention
+                    FROM    dbo.V_ContactMethod cm with (nolock) 
+                    inner join ETL_TEMP_Profiles as p with(nolock) on cm.FK_Profiles = p.PK_Profiles 
+                    WHERE  isnull(cm.recordstatus,'Active') = 'Active' and cm.CMType = 'Phone' and cm.CMCategory IN ('Primary') ";
+
+        public static readonly string SQL_GetEmailAndPhoneQuery =
+                @"SELECT cm1.FK_Profiles,
+                        CAST( left(cm1.PhonePhone,20)  AS NVARCHAR(50)) as PhoneNumber,
+                        CAST( left(cm1.PhoneMobile,20)  AS NVARCHAR(50)) as CellPhoneNumber,
+                        CAST( left(cm1.PhoneHome,20)  AS NVARCHAR(50)) as HomePhoneNumber,
+                        CAST( left(cm1.PhoneFax, 20)  AS NVARCHAR(50)) as FaxNumber,
+                        CAST(left(cm1.PhoneBusiness, 20) AS NVARCHAR(50)) AS BusinessPhoneNumber,
+                        CASE WHEN cm1.Email LIKE '%@%'  and  'PROD'  IN ('QA','TeamDev','BETA') THEN Convert(varchar(70), SUBSTRING(LTRIM(RTRIM(cm1.Email)), 1, CHARINDEX('@', LTRIM(RTRIM(cm1.Email))))+'cendyn17.com') ELSE Convert(varchar(70), LTRIM(RTRIM(cm1.Email))) END as Email, 0 as EmailStatus , CHECKSUM(cm1.Email) as EmailHash, 
+                        CHECKSUM(LTRIM(RTRIM(SUBSTRING(cm1.Email,CHARINDEX('@',cm1.Email)+(1),LEN(cm1.Email))))) as EmailDomainHash, 0 as DedupeCheck FROM  (SELECT  FK_Profiles,
+                                isnull([PhoneHome],isnull([PhonePhone],isnull([PhoneMobile],isnull([PhoneCELL PHONE],[PhoneCELL])))) as PhonePhone,
+		                        isnull([PhoneMobile],isnull([PhoneCELL PHONE],[PhoneCELL])) as PhoneMobile,
+                                [PhoneFax],
+                                Replace([IPEmail], ' ', '') as Email,
+                                isnull([PhoneBusiness],[PhoneWork]) as PhoneBusiness,
+                                isnull([PhoneHome], [PhonePhone]) as PhoneHome   FROM ( SELECT    cm.FK_Profiles,
+                                            ISNULL(cm.CMType, '') + 'Email' AS CMTypeCMCategory,
+                                            cm.CMData FROM    dbo.V_ContactMethod cm with (nolock) 
+					                        inner join ETL_TEMP_Profiles as p with(nolock) on cm.FK_Profiles = p.PK_Profiles
+                        WHERE  isnull(cm.recordstatus,'Active') = 'Active' and isnull(cm.Isprimary,1) = 1 and cm.CMType = 'IP' 
+                        and '6543' = '0' UNION SELECT    cm.FK_Profiles,
+                                            ISNULL(cm.CMType, '') + ISNULL(cm.CMCategory, '') AS CMTypeCMCategory,
+                                            cm.CMData FROM    dbo.V_ContactMethod cm with (nolock) 
+					                        inner join ETL_TEMP_Profiles as p with(nolock) on cm.FK_Profiles = p.PK_Profiles
+                        WHERE  isnull(cm.recordstatus,'Active') = 'Active' and isnull(cm.Isprimary,1) = 1 and cm.CMType = 'IP' and cm.CMCategory = 'Email' and '6543' <> '0' UNION SELECT    cm.FK_Profiles,
+                                            ISNULL(cm.CMType, '') + ISNULL(cm.CMCategory, '') AS CMTypeCMCategory,
+                                            cm.CMData FROM    dbo.V_ContactMethod cm with (nolock) 
+					                        inner join ETL_TEMP_Profiles as p with(nolock) on cm.FK_Profiles = p.PK_Profiles
+                        WHERE  DB_NAME() NOT LIKE '%MinorHotel%' AND isnull(cm.recordstatus,'Active') = 'Active' and cm.CMType = 'Phone' and cm.CMCategory IN ('Phone','Home','CELL','CELL PHONE','Mobile','Business','Work','Fax') UNION SELECT    cm.FK_Profiles,
+                                            ISNULL(cm.CMType, '') + ISNULL(cm.CMCategory, '') AS CMTypeCMCategory,
+                                            cm.CMData FROM    dbo.V_ContactMethod_Primary cm with (nolock) 
+					                        inner join ETL_TEMP_Profiles as p with(nolock) on cm.FK_Profiles = p.PK_Profiles
+                        WHERE  DB_NAME() LIKE '%MinorHotel%' AND isnull(cm.recordstatus,'Active') = 'Active' and cm.CMType = 'Phone' and cm.CMCategory IN ('Phone','Home','CELL','CELL PHONE','Mobile','Business','Work','Fax')) AS Unpivoted 
+                                PIVOT 
+                        ( MAX(CMData) FOR CMTypeCMCategory IN ( [PhonePhone], [PhoneMobile], [PhoneFax], [IPEmail], [PhoneBusiness], [PhoneHome], [PhoneCELL],[PhoneCELL PHONE],[PhoneWork] )) 
+                        AS Pivoted) cm1";
+
+        public static readonly string SQL_GetD_Customer_EmailQuery =
+                @"SELECT  A.PK_ContactMethod, A.FK_Profiles, A.EmailType,  Convert(varchar(70), LEFT(A.Email,70)) as 'Email', A.EmailStatus FROM
+                    (SELECT cm.PK_ContactMethod, cm.FK_Profiles,
+                            UPPER(cm.CMCategory) AS EmailType,
+                             CASE WHEN 'PROD' IN ('QA','TeamDev','BETA') 
+                     THEN SUBSTRING(cm.CMData, 1, CHARINDEX('@', cm.CMData))+'cendyn17.com' ELSE
+                     SUBSTRING(LTRIM(RTRIM(cm.CMData)),1,70) END AS Email, 0 AS EmailStatus,  CASE WHEN cm.CMCategory = 'EMAIL' THEN isnull(cm.IsPrimary,1) ELSE 1 END AS 'IsPrimaryCustom' FROM    dbo.V_ContactMethod cm WITH (NOLOCK)
+                    WHERE CMData LIKE '%@%' AND ISNULL(FK_Reservations,  '00000000-0000-0000-0000-000000000000') 
+					                    = '00000000-0000-0000-0000-000000000000'  AND ISNULL(RecordStatus,'Active') = 'Active' and  (cm.LastUpdated >= '2012-03-12 20:50:00' OR cm.DateInserted >= '2012-03-12 20:50:00') and cm.LastUpdated <= '2012-01-24 11:06:00' and cm.DateInserted <= '2012-01-24 11:06:00') A WHERE A.isprimaryCustom = 1";
+
+        public static readonly string SQL_EmailListTypeOfData =
+                @"SELECT FK_Internal, ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
+                    where RecordStatus = 'Active' and ColumnName = 'EmailList'";
+
+        public static readonly string SQL_UDF31TypeOfData =
+                @"SELECT FK_Internal, ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
+wher            e RecordStatus = 'Active' and ColumnName = 'UDFC31'";
+
+        public static readonly string SQL_KanaLastNameTypeOfData =
+                @"SELECT u.FK_Internal ,
+                           u.ColumnName ,
+                           u.UDFValue
+                    FROM   dbo.ETL_TEMP_PROFILES AS e WITH ( NOLOCK )
+                           INNER JOIN dbo.UDFData AS u WITH ( NOLOCK ) ON e.PK_Profiles = u.FK_Internal
+                    WHERE  u.RecordStatus = 'Active'
+                           AND u.ColumnName = '01KANALASTNAME';";
+
+        public static readonly string SQL_KanaFirstNameTypeOfData =
+                @"SELECT u.FK_Internal ,
+                           u.ColumnName ,
+                           u.UDFValue
+                    FROM   dbo.ETL_TEMP_PROFILES AS e WITH ( NOLOCK )
+                           INNER JOIN dbo.UDFData AS u WITH ( NOLOCK ) ON e.PK_Profiles = u.FK_Internal
+                    WHERE  u.RecordStatus = 'Active'
+                           AND u.ColumnName = '03KANAFIRSTNAME';";
+
+        public static readonly string SQL_NKanaLastNameTypeOfData =
+                @"SELECT u.FK_Internal ,
+                           u.ColumnName ,
+                           u.UDFValue
+                    FROM   dbo.ETL_TEMP_PROFILES AS e WITH ( NOLOCK )
+                           INNER JOIN dbo.UDFData AS u WITH ( NOLOCK ) ON e.PK_Profiles = u.FK_Internal
+                    WHERE  u.RecordStatus = 'Active'
+                           AND u.ColumnName = '02NKANALASTNAME';";
+
+        public static readonly string SQL_NKanaFirstNameTypeOfData =
+                @"SELECT u.FK_Internal ,
+                           u.ColumnName ,
+                           u.UDFValue
+                    FROM   dbo.ETL_TEMP_PROFILES AS e WITH ( NOLOCK )
+                           INNER JOIN dbo.UDFData AS u WITH ( NOLOCK ) ON e.PK_Profiles = u.FK_Internal
+                    WHERE  u.RecordStatus = 'Active'
+                           AND u.ColumnName = '04NKANAFIRSTNAME';";
+
+        public static readonly string SQL_NKanaNameTypeOfData =
+                @"SELECT u.FK_Internal ,
+                           u.ColumnName ,
+                           u.UDFValue
+                    FROM   dbo.ETL_TEMP_PROFILES AS e WITH ( NOLOCK )
+                           INNER JOIN dbo.UDFData AS u WITH ( NOLOCK ) ON e.PK_Profiles = u.FK_Internal
+                    WHERE  u.RecordStatus = 'Active'
+                           AND u.ColumnName = '05NKANANAME';";
+
+        public static readonly string SQL_UDFC37TypeOfData =
+                @"SELECT FK_Internal, ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
+                    where RecordStatus = 'Active' and ColumnName = 'UDFC37'";
+
+        public static readonly string SQL_UDFDataForAlways_Email_Folio =
+                @"SELECT u.FK_Internal, u.ColumnName, u.UDFValue FROM dbo.V_UDFData AS u WITH(NOLOCK) 
+                    INNER JOIN dbo.ETL_TEMP_PROFILES AS e With(Nolock)
+                    ON u.FK_Internal = e.PK_Profiles
+                    where u.RecordStatus = 'Active' and u.TableName = 'Profiles' and u.ColumnName = 'ALWAYS_EMAIL_FOLIO'";
+
+        public static readonly string SQL_UDFDataForGHA_Email =
+                @"SELECT u.FK_Internal, u.ColumnName, u.UDFValue FROM dbo.V_UDFData AS u WITH(NOLOCK) 
+                            INNER JOIN dbo.ETL_TEMP_PROFILES AS e With(Nolock)
+                            ON u.FK_Internal = e.PK_Profiles
+                            where u.RecordStatus = 'Active' and u.TableName = 'Profiles' and u.ColumnName = 'GHA_EMAIL'";
 
         #endregion
 

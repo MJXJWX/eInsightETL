@@ -141,7 +141,137 @@ namespace ETLBoxDemo.src.Customer
             //Move Profiles_Ext to PMS_Profiles_Ext 
             CustomerDataFlowTaskManager.DFT_MoveProfiles_ExtToPMS_Profiles_Ext();
 
+			//Move Birthday into D_Customer_Profile
+            CustomerDataFlowTaskManager.DFT_MoveBirthday();
 
+            //Move Anniversary into D_Customer_Profile
+
+            if ("11312".Equals(companyId))
+            {
+                //Update Preferred Language in PMS_Profiles table - Minor
+                CustomerDataFlowTaskManager.DFT_UpdatePreferredLanguageUnderPMS_Profiles();
+
+                //Update preferred language in D_Customer table - Minor
+                CRMDBManager.UpdatePreferredlanguageUnderD_Customer();
+            }
+            else
+            {
+                //Truncate temp tables
+                CRMDBManager.TruncateTable("ETL_TEMP_D_CUSTOMER_PHONE");
+            }
+
+            if ("12123".Equals(companyId) || "13298".Equals(companyId) || "13358".Equals(companyId))
+            {
+                //Update all address fields to blank - Omni
+                CRMDBManager.UpdateAllAddressFieldsToBlank();
+            }
+
+            //Update D_Customer table for Address
+
+            if ("7375".Equals(companyId))
+            {
+                // Update Email in D_Customer for Biltmore
+                CustomerDataFlowTaskManager.DFT_UpdateEmailUnderD_Customer();
+
+                // Update Phone Numbers in D_Customer for Biltmore
+                CustomerDataFlowTaskManager.DFT_UpdatePhoneNumbersUnderD_Customer();
+
+                // Update Phone Ext in D_Customer for Biltmore 
+                CustomerDataFlowTaskManager.DFT_UpdatePhoneExtUnderD_Customer();
+            }
+            else
+            {
+                //Remove inactive email records
+                CustomerDataFlowTaskManager.DFT_RemoveInactiveEmailRecords();
+
+                if ("10738".Equals(companyId))
+                {
+                    //Update AddressType as W if it is U for Rydges under D_Customer table
+                    CRMDBManager.UpdateAddressTypeUnderD_Customer();
+                }
+
+                //Update Email And Phone In D_Customer
+                CustomerDataFlowTaskManager.DFT_UpdateEmailAndPhoneUnderD_Customer();
+
+
+
+                if ("12123".Equals(companyId) || "13298".Equals(companyId) || "13358".Equals(companyId))
+                {
+                    //Update all phone fields to blank - Omni
+                    CRMDBManager.UpdateAllPhoneFieldsToBlank();
+                }
+
+                //Update Phones in D_Customer
+                CRMDBManager.UpdatePhonesUnderD_Customer();
+
+            }
+
+            // D_Customer Email maintenance
+            CRMDBManager.D_CustomerEmailMaintenance();
+
+            if ("6543".Equals(companyId))
+            {
+                //Update D_Customer_Email Rosewood
+                CustomerDataFlowTaskManager.DFT_UpdateD_Customer_Email();
+            }
+
+            //Fill Email table
+
+
+            //Move data from ETL_D_Customer_Email_Staging table to D_Customer_Email table
+            CustomerDataFlowTaskManager.DFT_UpSertDataIntoD_Customer_Email();
+
+            //Truncate table ETL_D_CUSTOMER_EMAIL_STAGING
+            CRMDBManager.TruncateTable("ETL_D_CUSTOMER_EMAIL_STAGING");
+
+            if ("10960".Equals(companyId))
+            {
+                //Update OptIn OptOut based on ProfilePolicies Data
+                CRMDBManager.UpdateOptInOptOut();
+            }
+
+            //Move EmailList type of data
+            CustomerDataFlowTaskManager.DFT_MoveEmailListTypeOfData();
+
+            //Move UDF31 Type Of Data
+            CustomerDataFlowTaskManager.DFT_MoveUDF31TypeOfData();
+
+            //Update VIPLevel based on UDFC31 type of data
+            CRMDBManager.UpdateVIPLevel();
+
+            if ("11757".Equals(companyId) || "12988".Equals(companyId) || "13006".Equals(companyId))
+            {
+                //Move KanaLastName
+                CustomerDataFlowTaskManager.DFT_MoveKanaLastName();
+
+                //Move KanaFirstName
+                CustomerDataFlowTaskManager.DFT_MoveKanaFirstName();
+
+                //Move NKanaLastName
+                CustomerDataFlowTaskManager.DFT_MoveNKanaLastName();
+
+                //Move NKanaFirstName
+                CustomerDataFlowTaskManager.DFT_MoveNKanaFirstName();
+
+                //Move NKanaName
+                CustomerDataFlowTaskManager.DFT_MoveNKanaName();
+
+                //Move UDFC37 Type of data
+                CustomerDataFlowTaskManager.DFT_MoveUDFC37TypeOfData();
+
+            }
+            else if ("12123".Equals(companyId) || "13298".Equals(companyId) || "13358".Equals(companyId))
+            {
+                //Move Always_Email_Folio data
+                CustomerDataFlowTaskManager.DFT_MoveAlways_Email_DolioData();
+
+                //Move GHA_Email Data
+                CustomerDataFlowTaskManager.DFT_MoveGHA_EmailData();
+            }
+            else
+            {
+
+            }
 
 
         }
