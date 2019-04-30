@@ -231,7 +231,7 @@ namespace ALE.ETLBox.ControlFlow
                 foreach (var colName in columnNames)
                 {
                     if (typeInfo.HasProperty(colName))
-                        Actions.Add(colValue => typeInfo.GetProperty(colName).SetValue(row, GetValueFromReader(colValue, colName) + ""));
+                        Actions.Add(colValue => typeInfo.GetProperty(colName).SetValue(row, GetValueFromReader(colValue, colName)?.ToString()));
                     else
                         Actions.Add(col => { });
                 }
@@ -267,28 +267,28 @@ namespace ALE.ETLBox.ControlFlow
             }
         }
 
-        public void BulkUpdate(ITableData data, string tableName)
+        public void BulkUpdate(ITableData data, string tableName, List<string> keys, List<string> updateFields)
         {
             using (var conn = DbConnectionManager.Clone())
             {
                 conn.Open();
                 QueryStart(LogType.Bulk);
                 conn.BeforeBulkUpdate();
-                conn.BulkUpdate(data, tableName);
+                conn.BulkUpdate(data, tableName, keys, updateFields);
                 conn.AfterBulkUpdate();
                 RowsAffected = data.RecordsAffected;
                 QueryFinish(LogType.Bulk);
             }
         }
 
-        public void BulkUpsert(ITableData data, string tableName, List<string> keys)
+        public void BulkUpsert(ITableData data, string tableName, List<string> keys, List<string> updateFields)
         {
             using (var conn = DbConnectionManager.Clone())
             {
                 conn.Open();
                 QueryStart(LogType.Bulk);
                 conn.BeforeBulkUpsert();
-                conn.BulkUpsert(data, tableName, keys);
+                conn.BulkUpsert(data, tableName, keys, updateFields);
                 conn.AfterBulkUpsert();
                 RowsAffected = data.RecordsAffected;
                 QueryFinish(LogType.Bulk);

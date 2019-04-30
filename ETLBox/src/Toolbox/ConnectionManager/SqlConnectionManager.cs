@@ -29,12 +29,44 @@ namespace ALE.ETLBox.ConnectionManager {
             }
         }
 
-        public override void BulkUpdate(ITableData data, string tableName)
+        public override void BulkUpdate(ITableData data, string tableName, List<string> keys, List<string> updateFields)
         {
-            throw new System.NotImplementedException();
+            using (var conn = DbConnection)
+            {
+                if (conn.State == ConnectionState.Closed)
+                    conn.Open();
+                StringBuilder columns = new StringBuilder();
+                List<string> cols = new List<string>();
+                foreach (IColumnMapping colMap in data.ColumnMapping)
+                {
+                    if (columns.Length > 0)
+                        columns.Append(", ");
+                    columns.Append($"{colMap.SourceColumn} nvarchar(50)");
+                    cols.Add(colMap.SourceColumn);
+                }
+                var createTempTableCommand = $"Create Table #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)} ({columns.ToString()})";
+
+                //Execute the command to make a temp table
+                SqlCommand cmd = new SqlCommand(createTempTableCommand, conn);
+                cmd.ExecuteNonQuery();
+
+                //BulkCopy the data in the DataTable to the temp table
+                BulkInsert(data, $"#temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)}");
+
+                //use the merge command to upsert from the temp table to the destination table
+                string mergeSql = $"merge into {tableName} as Target  using #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)} as Source  on  {string.Join(" AND ", keys.ConvertAll(k => k = $"Target.{k} collate SQL_Latin1_General_CP1_CI_AS = Source.{k} collate SQL_Latin1_General_CP1_CI_AS"))} when matched then update set {string.Join(" , ", updateFields.ConvertAll(c => c = $"Target.{c} = Source.{c}"))};";
+
+                cmd.CommandText = mergeSql;
+                cmd.ExecuteNonQuery();
+
+                //Clean up the temp table
+                cmd.CommandText = $"drop table #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)};";
+                cmd.ExecuteNonQuery();
+
+            }
         }
 
-        public override void BulkUpsert(ITableData data, string tableName, List<string> keys)
+        public override void BulkUpsert(ITableData data, string tableName, List<string> keys, List<string> updateFields)
         {
             using(var conn = DbConnection)
             {
@@ -59,7 +91,7 @@ namespace ALE.ETLBox.ConnectionManager {
                 BulkInsert(data, $"#temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)}");
 
                 //use the merge command to upsert from the temp table to the destination table
-                string mergeSql = $"merge into {tableName} as Target  using #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)} as Source  on  {string.Join(" AND ", keys.ConvertAll(k => k = $"Target.{k} collate SQL_Latin1_General_CP1_CI_AS = Source.{k} collate SQL_Latin1_General_CP1_CI_AS"))} when matched then update set {string.Join(" , ", cols.ConvertAll(c => c = $"Target.{c} = Source.{c}"))} when not matched then insert ({string.Join(",", cols)}) values (Source.{string.Join(", Source.", cols)});";
+                string mergeSql = $"merge into {tableName} as Target  using #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)} as Source  on  {string.Join(" AND ", keys.ConvertAll(k => k = $"Target.{k} collate SQL_Latin1_General_CP1_CI_AS = Source.{k} collate SQL_Latin1_General_CP1_CI_AS"))} when matched then update set {string.Join(" , ", updateFields.ConvertAll(c => c = $"Target.{c} = Source.{c}"))} when not matched then insert ({string.Join(",", cols)}) values (Source.{string.Join(", Source.", cols)});";
 
                 cmd.CommandText = mergeSql;
                 cmd.ExecuteNonQuery();

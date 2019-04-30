@@ -45,6 +45,7 @@ namespace ALE.ETLBox.DataFlow {
         public string ConnString { get; set; }
         public ActionType ActionType { get; set; }
         public List<string> Keys { get; set; }
+        public List<string> UpdateFields { get; set; }
 
         public DBDestination() {
             InitObjects(DEFAULT_BATCH_SIZE);
@@ -122,12 +123,12 @@ namespace ALE.ETLBox.DataFlow {
                 case ActionType.Update:
                     new SqlTask(this, $"Execute Bulk Update {DestinationTableDefinition.Name}") {
                         ConnectionManager = string.IsNullOrEmpty(ConnString) ? null : new SqlConnectionManager(new ConnectionString(ConnString))
-                    }.BulkUpdate(td, DestinationTableDefinition.Name);
+                    }.BulkUpdate(td, DestinationTableDefinition.Name, Keys, UpdateFields);
                     break;
                 case ActionType.Upsert:
                     new SqlTask(this, $"Execute Bulk Upsert {DestinationTableDefinition.Name}") {
                         ConnectionManager = string.IsNullOrEmpty(ConnString) ? null : new SqlConnectionManager(new ConnectionString(ConnString))
-                    }.BulkUpsert(td, DestinationTableDefinition.Name, Keys);
+                    }.BulkUpsert(td, DestinationTableDefinition.Name, Keys, UpdateFields);
                     break;
                 default:
                     new SqlTask(this, $"Execute Bulk Insert into {DestinationTableDefinition.Name}") {

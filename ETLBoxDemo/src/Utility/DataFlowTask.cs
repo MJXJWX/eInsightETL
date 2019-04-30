@@ -13,7 +13,7 @@ namespace ETLBoxDemo.src.Utility
 {
     public class DataFlowTask<T>
     {
-        public void runTask(string sConnString, string dConnString, string dTableName, string sql, bool isUpdate = false, bool isInsert = false, List<string> primaryKey = null, List<string> properties = null)
+        public void runTask(string sConnString, string dConnString, string dTableName, string sql, bool isUpdate = false, bool isInsert = false, List<string> primaryKey = null, List<string> updateFields = null)
         {
             //Type of Data Flow Task
             ActionType actionType = ActionType.Upsert;
@@ -33,32 +33,14 @@ namespace ETLBoxDemo.src.Utility
             {
                 //return;
             }
-
-            //Properties of transfor
-            var columns = new List<TableColumn>();
-            if (primaryKey != null && primaryKey.Count > 0)
-            {
-                primaryKey.ForEach(p => columns.Add(new TableColumn(p, "string", allowNulls: false, isPrimaryKey: true, isIdentity: true)));
-            }
-            if (properties != null && properties.Count > 0)
-            {
-                properties.ForEach(p => {
-                    if (!primaryKey.Contains(p))
-                        columns.Add(new TableColumn(p, "string", allowNulls: false, isPrimaryKey: false, isIdentity: true));
-                });
-            }
-            else
-            {
-                columns = new List<TableColumn>();
-            }
+            
             if (actionType == ActionType.Upsert && (primaryKey == null || primaryKey.Count == 0))
             {
                 actionType = ActionType.Insert;
             }
 
             //Execute Task Flow task
-            TableDefinition OrderDataTableDef = new TableDefinition(dTableName, columns);
-            DBSource<T> dBSource = new DBSource<T>(OrderDataTableDef) {
+            DBSource<T> dBSource = new DBSource<T>() {
                 ConnString = sConnString,
                 Sql = sql
             };
@@ -68,7 +50,8 @@ namespace ETLBoxDemo.src.Utility
             DBDestination<T> dBDestination = new DBDestination<T>(dTableName) {
                 ConnString = dConnString,
                 ActionType = actionType,
-                Keys = primaryKey
+                Keys = primaryKey,
+                UpdateFields = updateFields
             };
             dBSource.LinkTo(rowT);
             rowT.LinkTo(dBDestination);
@@ -79,7 +62,7 @@ namespace ETLBoxDemo.src.Utility
 
     public class DataFlowTask<T, D>
     {
-        public void runTask(string sConnString, string dConnString, string dTableName, string sql, Dictionary<string, string> mapping, bool isUpdate = false, bool isInsert = false, List<string> primaryKey = null, List<string> properties = null)
+        public void runTask(string sConnString, string dConnString, string dTableName, string sql, Dictionary<string, string> mapping, bool isUpdate = false, bool isInsert = false, List<string> primaryKey = null, List<string> updateFields = null)
         {
             if ((typeof(T) != typeof(D)) && (mapping == null || mapping.Count == 0))
             {
@@ -104,32 +87,14 @@ namespace ETLBoxDemo.src.Utility
             {
                 //return;
             }
-
-            //Properties of transfor
-            var columns = new List<TableColumn>();
-            if (primaryKey != null && primaryKey.Count > 0)
-            {
-                primaryKey.ForEach(p => columns.Add(new TableColumn(p, "string", allowNulls: false, isPrimaryKey: true, isIdentity: true)));
-            }
-            if (properties != null && properties.Count > 0)
-            {
-                properties.ForEach(p => {
-                    if (!primaryKey.Contains(p))
-                        columns.Add(new TableColumn(p, "string", allowNulls: false, isPrimaryKey: false, isIdentity: true));
-                });
-            }
-            else
-            {
-                columns = new List<TableColumn>();
-            }
+            
             if (actionType == ActionType.Upsert && (primaryKey == null || primaryKey.Count == 0))
             {
                 actionType = ActionType.Insert;
             }
 
             //Execute Task Flow task
-            TableDefinition OrderDataTableDef = new TableDefinition(dTableName, columns);
-            DBSource<T> dBSource = new DBSource<T>(OrderDataTableDef)
+            DBSource<T> dBSource = new DBSource<T>()
             {
                 ConnString = sConnString,
                 Sql = sql
@@ -158,7 +123,8 @@ namespace ETLBoxDemo.src.Utility
             DBDestination<D> dBDestination = new DBDestination<D>(dTableName) {
                 ConnString = dConnString,
                 ActionType = actionType,
-                Keys = primaryKey
+                Keys = primaryKey,
+                UpdateFields = updateFields
             };
             dBSource.LinkTo(rowT);
             rowT.LinkTo(dBDestination);
@@ -187,7 +153,7 @@ namespace ETLBoxDemo.src.Utility
                 var obj = LookupData.Where(o => {
                     foreach (var key in LookupKeys.Keys)
                     {
-                        if (!(o.GetType().GetProperty(key).GetValue(o) + "").Equals(resultRow.GetType().GetProperty(LookupKeys[key]).GetValue(resultRow) + ""))
+                        if (!(o.GetType().GetProperty(key).GetValue(o) + "").Equals(resultRow.GetType().GetProperty(LookupKeys[key]).GetValue(resultRow)+""))
                         {
                             return false;
                         }
@@ -196,13 +162,13 @@ namespace ETLBoxDemo.src.Utility
                 }).FirstOrDefault();
                 foreach (var key in LookupMapping.Keys)
                 {
-                    resultRow.GetType().GetProperty(LookupMapping[key]).SetValue(resultRow, obj?.GetType().GetProperty(key).GetValue(obj) + "");
+                    resultRow.GetType().GetProperty(LookupMapping[key]).SetValue(resultRow, obj?.GetType().GetProperty(key).GetValue(obj)?.ToString());
                 }
                 return resultRow;
             }
         }
 
-        public void runTask(string sConnString, string dConnString, string lConnString, string dTableName, string sql, string lookupSql, Dictionary<string, string> lookupKey, Dictionary<string, string> lookupMapping, Dictionary<string, string> mapping, bool isUpdate = false, bool isInsert = false, List<string> primaryKey = null, List<string> properties = null)
+        public void runTask(string sConnString, string dConnString, string lConnString, string dTableName, string sql, string lookupSql, Dictionary<string, string> lookupKey, Dictionary<string, string> lookupMapping, Dictionary<string, string> mapping, bool isUpdate = false, bool isInsert = false, List<string> primaryKey = null, List<string> updateFields = null)
         {
             if ((typeof(T) != typeof(D)) && (mapping == null || mapping.Count == 0))
             {
@@ -232,32 +198,14 @@ namespace ETLBoxDemo.src.Utility
             {
                 //return;
             }
-
-            //Properties of transfor
-            var columns = new List<TableColumn>();
-            if (primaryKey != null && primaryKey.Count > 0)
-            {
-                primaryKey.ForEach(p => columns.Add(new TableColumn(p, "string", allowNulls: false, isPrimaryKey: true, isIdentity: true)));
-            }
-            if (properties != null && properties.Count > 0)
-            {
-                properties.ForEach(p => {
-                    if (!primaryKey.Contains(p))
-                        columns.Add(new TableColumn(p, "string", allowNulls: false, isPrimaryKey: false, isIdentity: true));
-                });
-            }
-            else
-            {
-                columns = null;
-            }
-            if (actionType == ActionType.Upsert && (primaryKey == null || primaryKey.Count == 0))
+            
+            if (actionType != ActionType.Insert && (primaryKey == null || primaryKey.Count == 0 || updateFields == null || updateFields.Count == 0))
             {
                 actionType = ActionType.Insert;
             }
 
             //Execute Task Flow task
-            TableDefinition OrderDataTableDef = new TableDefinition(dTableName, columns);
-            DBSource<T> dBSource = new DBSource<T>(OrderDataTableDef)
+            DBSource<T> dBSource = new DBSource<T>()
             {
                 Sql = sql,
                 ConnString = sConnString
@@ -298,7 +246,8 @@ namespace ETLBoxDemo.src.Utility
             {
                 ActionType = actionType,
                 ConnString = dConnString,
-                Keys = primaryKey
+                Keys = primaryKey,
+                UpdateFields = updateFields
             };
             ControlFlow.CurrentDbConnection = new SqlConnectionManager(new ConnectionString(sConnString));
             dBSource.LinkTo(lookup);

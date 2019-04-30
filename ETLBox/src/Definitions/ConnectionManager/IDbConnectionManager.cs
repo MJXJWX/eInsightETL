@@ -11,10 +11,10 @@ namespace ALE.ETLBox.ConnectionManager {
         void AfterBulkInsert();
         IDbConnectionManager Clone();
         void BeforeBulkUpdate();
-        void BulkUpdate(ITableData data, string tableName);
+        void BulkUpdate(ITableData data, string tableName, List<string> keys, List<string> updateFields);
         void AfterBulkUpdate();
         void BeforeBulkUpsert();
-        void BulkUpsert(ITableData data, string tableName, List<string> keys);
+        void BulkUpsert(ITableData data, string tableName, List<string> keys, List<string> updateFields);
         void AfterBulkUpsert();
     }
 }

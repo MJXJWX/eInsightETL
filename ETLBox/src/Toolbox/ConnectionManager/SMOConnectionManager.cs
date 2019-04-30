@@ -89,7 +89,7 @@ namespace ALE.ETLBox.ConnectionManager {
             throw new NotImplementedException();
         }
 
-        public void BulkUpdate(ITableData data, string tableName)
+        public void BulkUpdate(ITableData data, string tableName, List<string> keys, List<string> updateFields)
         {
             throw new NotImplementedException();
         }
@@ -104,7 +104,7 @@ namespace ALE.ETLBox.ConnectionManager {
             throw new NotImplementedException();
         }
 
-        public void BulkUpsert(ITableData data, string tableName, List<string> keys)
+        public void BulkUpsert(ITableData data, string tableName, List<string> keys, List<string> updateFields)
         {
             throw new NotImplementedException();
         }

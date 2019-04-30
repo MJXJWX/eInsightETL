@@ -50,7 +50,7 @@ namespace ALE.ETLBox.ConnectionManager {
             throw new NotImplementedException();
         }
 
-        public override void BulkUpdate(ITableData data, string tableName)
+        public override void BulkUpdate(ITableData data, string tableName, List<string> keys, List<string> updateFields)
         {
             throw new NotImplementedException();
         }
@@ -65,7 +65,7 @@ namespace ALE.ETLBox.ConnectionManager {
             throw new NotImplementedException();
         }
 
-        public override void BulkUpsert(ITableData data, string tableName, List<string> keys)
+        public override void BulkUpsert(ITableData data, string tableName, List<string> keys, List<string> updateFields)
         {
             throw new NotImplementedException();
         }
