@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="src\Customer\CustomerTask.cs" />
     <Compile Remove="src\Modules\Customer\Customer.cs" />
     <Compile Remove="src\Tasks\DFT_MoveProfileDocument.cs" />
     <Compile Remove="src\Utility\Class1.cs" />
@@ -38,6 +39,10 @@
     <None Update="src\DataFlow\DemoData.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="src\Customer\" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JSONSchema="" /></VisualStudio></ProjectExtensions>
