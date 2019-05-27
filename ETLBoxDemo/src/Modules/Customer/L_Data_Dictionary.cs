@@ -8,8 +8,11 @@ namespace ETLBoxDemo.src.Modules.Customer
     {
         public string ID { get; set; }
         public string PropertyCode { get; set; }
+        public string CendynPropertyID { get; set; }
         public string FieldName { get; set; }
         public string FieldValue { get; set; }
+        public string BuildingCode { get; set; }
         public string Description { get; set; }
+        public string Notes { get; set; }
     }
 }

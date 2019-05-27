@@ -470,6 +470,59 @@ wher            e RecordStatus = 'Active' and ColumnName = 'UDFC31'";
                             ON u.FK_Internal = e.PK_Profiles
                             where u.RecordStatus = 'Active' and u.TableName = 'Profiles' and u.ColumnName = 'GHA_EMAIL'";
 
+        public static readonly string SQL_GetRateTypeForBiltmore =
+            @"SELECT CONVERT(VARCHAR(100), 'RateType') AS FieldName,
+               CONVERT(NVARCHAR(100), rh.RatePlanName) AS FieldValue,
+               CONVERT(NVARCHAR(4000), rh.ShortDescription) AS Description,
+               CONVERT(NVARCHAR(4000), rh.LongDescription) AS Notes,
+               rh.CendynPropertyID,
+               rh.BuildingCode
+            FROM dbo.RateHeader AS rh WITH (NOLOCK)
+            WHERE rh.RecordStatus = 'Active'
+              AND rh.RatePlanName NOT LIKE 'A%'
+              AND rh.RatePlanName NOT LIKE 'B%'
+              AND rh.RatePlanName NOT LIKE 'V%'
+              AND rh.RatePlanGroup IN ( 'CRES' );";
+
+        public static readonly string SQL_GetRateTypeDataForSHGroup =
+            @"SELECT DISTINCT
+       CONVERT(VARCHAR(100), 'RateType') AS FieldName,
+       CONVERT(NVARCHAR(100), rh.RateCode) AS FieldValue,
+       CONVERT(NVARCHAR(4000), ISNULL(rh.LongDescription, rh.RateCode)) AS Description,
+       CONVERT(NVARCHAR(4000), ISNULL(rh.LongDescription, rh.RateCode)) AS Notes,
+       rh.HotelCode AS CendynPropertyID
+        FROM dbo.RateTypes AS rh WITH (NOLOCK);";
+
+        public static readonly string SQL_GetRoomTypeDataForSHGroup =
+            @"SELECT DISTINCT
+       CONVERT(VARCHAR(100), 'RoomType') AS FieldName,
+       CONVERT(NVARCHAR(100), rh.RoomCode) AS FieldValue,
+       CONVERT(NVARCHAR(4000), ISNULL(rh.ShortDescription, rh.RoomCode)) AS Description,
+       CONVERT(NVARCHAR(4000), ISNULL(rh.LongDescription, rh.ShortDescription)) AS Notes,
+       convert(varchar(50), rh.HotelCode) AS CendynPropertyID
+        FROM dbo.RoomTypes AS rh WITH (NOLOCK);";
+
+        public static readonly string SQL_GetRateTypeDataFor12951 =
+            @"SELECT DISTINCT
+       CONVERT(VARCHAR(100), 'RateType') AS FieldName,
+       CONVERT(NVARCHAR(100), rh.RateCode) AS FieldValue,
+       CONVERT(NVARCHAR(4000), ISNULL(rh.DisplayText, rh.RateCode)) AS [Description],
+       CONVERT(NVARCHAR(4000), ISNULL(rh.LongDescription, rh.ShortDescription)) AS Notes,
+       rh.HotelCode AS CendynPropertyID
+        FROM dbo.RateTypes AS rh WITH (NOLOCK);";
+
+        public static readonly string SQL_GetRateTypeDataForAquaAston =
+            @"SELECT DISTINCT CONVERT(VARCHAR(100), 'RateType') AS FieldName ,
+       CONVERT(NVARCHAR(100), rh.RatePlanName) AS FieldValue ,
+       CONVERT(NVARCHAR(4000), rh.ShortDescription) AS [Description] ,
+       CONVERT(
+                  NVARCHAR(4000) ,
+                  ISNULL(rh.LongDescription, rh.ShortDescription)
+              ) AS Notes ,
+       rh.CendynPropertyID
+        FROM   dbo.RateHeader AS rh WITH ( NOLOCK )
+        WHERE  rh.RecordStatus = 'Active';";
+
         #endregion
 
         public static void TruncateTable(params string[] tableNames)

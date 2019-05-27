@@ -329,6 +329,168 @@ namespace ETLBoxDemo.src.Manager
                               )
                           );";
 
+        public static string SQL_UpdateRateTypeDictionary = 
+            @"INSERT INTO dbo.L_DATA_DICTIONARY
+        (PropertyCode,
+         FieldName,
+         FieldValue,
+         Description,
+         ManualUpdate)
+SELECT DISTINCT s.PropertyCode, 
+         'RateType', 
+         s.RateType, 
+         s.RateType, 
+         1  
+FROM dbo.D_CUSTOMER_STAY s WITH(NOLOCK)
+WHERE ISNULL(PropertyCode, '') <> '' AND ISNULL(RateType, '') <> ''
+AND NOT EXISTS (SELECT 1 FROM dbo.L_DATA_DICTIONARY WITH(NOLOCK)
+				WHERE FieldName = 'RateType' 
+				AND PropertyCode = s.PropertyCode
+				AND FieldValue = s.RateType)";
+
+        public static string SQL_UpdateRoomTypeDictionary = 
+            @"INSERT INTO dbo.L_DATA_DICTIONARY
+        (PropertyCode,
+         FieldName,
+         FieldValue,
+         Description,
+         ManualUpdate)
+SELECT DISTINCT s.PropertyCode, 
+		'RoomType',
+		s.RoomTypeCode,
+		s.RoomTypeCode,
+		1
+FROM dbo.D_CUSTOMER_STAY s WITH(NOLOCK)
+WHERE ISNULL(PropertyCode, '') <> '' AND ISNULL(RoomTypeCode, '') <> ''
+AND NOT EXISTS (SELECT 1 FROM dbo.L_DATA_DICTIONARY WITH(NOLOCK)
+					WHERE FieldName = 'RoomType' 
+					AND PropertyCode = s.PropertyCode
+					AND FieldValue = s.RoomTypeCode)";
+
+        public static string SQL_UpdateChannelCodeDictionary =
+            @"INSERT  INTO dbo.L_DATA_DICTIONARY
+        ( PropertyCode ,
+          FieldName ,
+          FieldValue ,
+          ManualUpdate
+        )
+        SELECT DISTINCT
+                s.PropertyCode ,
+                'ChannelCode' ,
+                s.Channel ,
+                1
+        FROM    dbo.D_CUSTOMER_STAY s WITH ( NOLOCK )
+        WHERE   ISNULL(s.PropertyCode, '') <> ''
+                AND ISNULL(s.Channel, '') <> ''
+                AND NOT EXISTS ( SELECT 1
+                                 FROM   dbo.L_DATA_DICTIONARY WITH ( NOLOCK )
+                                 WHERE  FieldName = 'ChannelCode'
+                                        AND PropertyCode = s.PropertyCode
+                                        AND FieldValue = s.Channel );";
+
+        public static string SQL_UpdateRoomCodeDictionary =
+            @"INSERT  INTO dbo.L_DATA_DICTIONARY
+        ( PropertyCode ,
+          FieldName ,
+          FieldValue ,
+          Description ,
+          ManualUpdate
+        )
+        SELECT DISTINCT
+                s.PropertyCode ,
+                'RoomCode' ,
+                s.RoomCode ,
+                s.RoomCode ,
+                1
+        FROM    dbo.D_CUSTOMER_STAY s WITH ( NOLOCK )
+        WHERE   ISNULL(PropertyCode, '') <> ''
+                AND ISNULL(RoomCode, '') <> ''
+                AND NOT EXISTS ( SELECT 1
+                                 FROM   dbo.L_DATA_DICTIONARY WITH ( NOLOCK )
+                                 WHERE  FieldName = 'RoomCode'
+                                        AND PropertyCode = s.PropertyCode
+                                        AND FieldValue = s.RoomCode );";
+
+        public static string SQL_UpdateNotesForRateType =
+            @"UPDATE dbo.L_DATA_DICTIONARY
+SET Notes = '<B>Group Rate</B><BR>- Room Only Reservation.<BR> *This rate does not include Biltmore House admission or gratuities.<BR>'
+WHERE FieldName = 'Ratetype'
+      AND ISNUMERIC(SUBSTRING(FieldValue, 2, 1)) = 1
+      AND ISNULL(Notes, '') = ''
+      AND PropertyCode IN ( 'A', 'B', 'V' );";
+
+        public static string SQL_UpdateTargetTableName1AndTargetFieldName1ForRateType = 
+            @"UPDATE dbo.L_DATA_DICTIONARY
+            SET TargetTableName1 = 'D_Customer_Stay',
+            TargetFieldName1 = 'MainRateCode'
+            WHERE FieldName = 'RateType'";
+
+        public static string SQL_GetRateTypesForBiltmore =
+            @"SELECT  DISTINCT
+        p.PropertyCode ,
+        CONVERT(VARCHAR(50), p.CendynPropertyID) AS CendynPropertyID ,
+        CONVERT(VARCHAR(100), 'RateType') AS FieldName ,
+        l.FieldValue ,
+        CONVERT(NVARCHAR(50), p.PropertySeparatorValue) AS BuildingCode
+        FROM    dbo.L_DATA_PROPERTY_SEPARATOR AS p WITH ( NOLOCK )
+        INNER JOIN dbo.L_DATA_DICTIONARY AS l WITH ( NOLOCK ) ON p.PropertyCode = l.PropertyCode
+        AND l.FieldName = 'RateType';";
+
+        public static string SQL_GetRateTypesForSHGroup =
+            @"SELECT  DISTINCT
+        p.PropertyCode ,
+        CONVERT(VARCHAR(50), p.CendynPropertyID) AS CendynPropertyID ,
+        CONVERT(VARCHAR(100), 'RateType') AS FieldName ,
+        l.FieldValue 
+        FROM    dbo.D_PROPERTY AS p WITH ( NOLOCK )
+        INNER JOIN dbo.L_DATA_DICTIONARY AS l WITH ( NOLOCK ) ON p.PropertyCode = l.PropertyCode
+        AND l.FieldName = 'RateType';";
+
+        public static string SQL_GetRoomTypesForSHGroup =
+            @"SELECT  DISTINCT
+        p.PropertyCode ,
+        CONVERT(VARCHAR(50), p.CendynPropertyID) AS CendynPropertyID ,
+        CONVERT(VARCHAR(100), 'RoomType') AS FieldName ,
+        l.FieldValue 
+        FROM    dbo.D_PROPERTY AS p WITH ( NOLOCK )
+        INNER JOIN dbo.L_DATA_DICTIONARY AS l WITH ( NOLOCK ) ON p.PropertyCode = l.PropertyCode
+        AND l.FieldName = 'RoomType';";
+
+        public static string SQL_GetRateTypesFor12951 =
+            @"SELECT  DISTINCT
+        p.PropertyCode ,
+        CONVERT(VARCHAR(50), p.CendynPropertyID) AS CendynPropertyID ,
+        CONVERT(VARCHAR(100), 'RateType') AS FieldName ,
+        l.FieldValue 
+        FROM    dbo.D_PROPERTY AS p WITH ( NOLOCK )
+        INNER JOIN dbo.L_DATA_DICTIONARY AS l WITH ( NOLOCK ) ON p.PropertyCode = l.PropertyCode
+        AND l.FieldName = 'RateType';";
+
+        public static string SQL_GetRateTypesForAquaAston =
+            @"SELECT  DISTINCT
+        p.PropertyCode ,
+        CONVERT(VARCHAR(50), p.CendynPropertyID) AS CendynPropertyID ,
+        CONVERT(VARCHAR(100), 'RateType') AS FieldName ,
+        l.FieldValue 
+        FROM    dbo.D_PROPERTY AS p WITH ( NOLOCK )
+        INNER JOIN dbo.L_DATA_DICTIONARY AS l WITH ( NOLOCK ) ON p.PropertyCode = l.PropertyCode
+        AND l.FieldName = 'RateType';";
+
+        public static string SQL_GetShowAlphaCodeAndShowName =
+            @"SELECT 'BILTMORE' AS PropertyCode, 'ShowAlphaCode' AS FieldName, Convert(NVARCHAR(100), x.ShowAlphaCode) AS FieldValue, Convert(NVARCHAR(4000), x.ShowName) AS Description 
+            FROM   (   SELECT   ShowName ,
+                    ShowAlphaCode ,
+                    ROW_NUMBER() OVER ( PARTITION BY ShowAlphaCode
+                                        ORDER BY CASE WHEN eInsightCRM_UpdateDate IS NOT NULL THEN
+                                                          eInsightCRM_UpdateDate
+                                                      ELSE eInsightCRM_InsertDate
+                                                 END DESC
+                                      ) AS rn
+           FROM     dbo.D_Customer_Omni_TicketLog WITH ( NOLOCK )
+           WHERE    ISNULL(ShowAlphaCode, '') <> ''
+            ) x
+           WHERE  x.rn = 1;";
+
         public static string CreateSourceCode(string companyId, string sourceName, string subSourceName, byte isShowdropdown, int dedupPriority, int ETLProcess)
         {
             string sql = string.Format(SQL_CreateSourceCode, companyId, sourceName, subSourceName, isShowdropdown, dedupPriority, ETLProcess);
@@ -435,5 +597,34 @@ namespace ETLBoxDemo.src.Manager
             SQLHelper.TruncateTable(GetCRMConnectionString(), "TruncateETLCRMTEMPTable: " + string.Join(", ", tableNames), tableNames);
         }
 
+        public static void UpdateRateTypeDictionary()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_UpdateRateTypeDictionary", SQL_UpdateRateTypeDictionary, null);
+        }
+
+        public static void UpdateRoomCodeDictionary()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_UpdateRoomCodeDictionary", SQL_UpdateRoomCodeDictionary, null);
+        }
+
+        public static void UpdateChannelCodeDictionary()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_UpdateChannelCodeDictionary", SQL_UpdateChannelCodeDictionary, null);
+        }
+
+        public static void UpdateRoomTypeDictionary()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_UpdateRoomTypeDictionary", SQL_UpdateRoomTypeDictionary, null);
+        }
+
+        public static void UpdateNotesForRateType()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_UpdateNotesForRateTypeWithSecondCharacterAsNumber", SQL_UpdateNotesForRateType, null);
+        }
+
+        public static void UpdateTargetTableName1AndTargetFieldName1ForRateType()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_UpdateTargetTableName1AndTargetFieldName1ForRateType_RedLion", SQL_UpdateTargetTableName1AndTargetFieldName1ForRateType, null);
+        }
     }
 }
