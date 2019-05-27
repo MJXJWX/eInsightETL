@@ -21,7 +21,10 @@ namespace ETLBoxDemo.src.eInsightETL_Driver
             eContactDBManager.GetCompanySetting(requestSettings);
 
             //!!
-            SSISLOGDBManager.LogDriverStart();
+            var logResult = SSISLOGDBManager.LogPackageStart("ETL_Driver");
+            var BatchLogID = logResult["BatchLogID"];
+            var PackageLogID = logResult["PackageLogID"];
+            var EndBatchAudit = logResult["EndBatchAudit"];
 
             if ("1".Equals(CompanySettings.ETL_ECONCIERGEEXPORT) && "1.0".Equals(CompanySettings.ETL_ECONCIERGE_TYPE))
             {
@@ -142,7 +145,7 @@ namespace ETLBoxDemo.src.eInsightETL_Driver
             }
 
             // !!
-            SSISLOGDBManager.LogDriverEnd();
+            SSISLOGDBManager.LogPackageEnd(PackageLogID, BatchLogID, EndBatchAudit);
 
         }
     }

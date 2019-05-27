@@ -2,6 +2,7 @@
 using ETLBoxDemo.Common;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace ETLBoxDemo.src.Manager
@@ -38,15 +39,16 @@ namespace ETLBoxDemo.src.Manager
             ,@EndBatchAudit = {2} ";
 
         #endregion
-        public static void LogDriverStart()
+        public static Dictionary<string, string> LogPackageStart(string packageName)
         {
-            var sql = string.Format(SQL_LogPackageStart, "BatchLogID", "PackageName", "ExecutionInstanceIDGUID", Environment.MachineName, "UserName", DateTime.Now.ToLongTimeString(), "PackageVersionGUID", "1", "1", "1", "VersionComment", "PackageGUID", DateTime.Now.ToLongDateString(), "CreatedBy", CompanySettings.CompanyID);
-            SQLHelper.InsertOrUpdateDbValue(GetLogDbConnection(), "Log Package Start.", sql, null);
+            var sql = string.Format(SQL_LogPackageStart, "BatchLogID", packageName, Guid.NewGuid(), Environment.MachineName, "UserName", DateTime.Now.ToLongTimeString(), "PackageVersionGUID", "1", "1", "1", "VersionComment", "PackageGUID", DateTime.Now.ToLongDateString(), "CreatedBy", CompanySettings.CompanyID);
+            var result = SQLHelper.GetDbValues(GetLogDbConnection(), "Log Package Start.", sql, null).FirstOrDefault();
+            return result;
         }
 
-        public static void LogDriverEnd()
+        public static void LogPackageEnd(string packageLogID, string batchLogID, string endBatchAudit)
         {
-            var sql = string.Format(SQL_LogPackageStart, "PackageLogID", "BatchLogID", "EndBatchAudit");
+            var sql = string.Format(SQL_LogPackageStart, packageLogID, batchLogID, endBatchAudit);
             SQLHelper.InsertOrUpdateDbValue(GetLogDbConnection(), "Log Package End.", sql, null);
         }
 
