@@ -1,8 +1,8 @@
 ﻿using ETLBox.src.Toolbox.Database;
 using ETLBoxDemo.Common;
-using ETLBoxDemo.src.Customer;
 using ETLBoxDemo.src.Manager;
 using ETLBoxDemo.src.Modules.Customer;
+using ETLBoxDemo.src.Tasks;
 using ETLBoxDemo.src.Utility;
 using Newtonsoft.Json;
 using Rebus.Bus;
