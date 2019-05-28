@@ -45,6 +45,19 @@ namespace ETLBoxDemo.src.Modules.Customer
         public string BusinessPhoneNumber { get; set; }
 
         public string PhoneExtention { get; set; }
-        
+        public string RecordStatus { get; set; }
+
+        public string Address1 { get; set; }
+        public string AddressTypeCode { get; set; }
+        public string Address2 { get; set; }
+        public string City { get; set; }
+        public string StateProvinceCode { get; set; }
+        public string ZipCode { get; set; }
+        public string CountryCode { get; set; }
+        public string DivisionCode { get; set; }
+        public string RegionCode { get; set; }
+        public string ZipCodePlus4 { get; set; }
+        public string AddressStatus { get; set; }
+
     }
 }

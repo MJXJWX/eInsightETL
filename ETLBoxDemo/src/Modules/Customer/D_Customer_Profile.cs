@@ -9,5 +9,6 @@ namespace ETLBoxDemo.src.Modules.Customer
         public string CustomerID { get; set; }
         public string DOB { get; set; }
         public string Anniversary { get; set; }
+        public string SpouseBirthDate { get; set; }
     }
 }

@@ -48,7 +48,7 @@ namespace ETLBoxDemo.src.Manager
             WHERE (LastUpdated >= '{0}' OR DateCreated >= '{0}') 
             AND LastUpdated <= '{1}' and DateCreated <= '{1}'";
         
-        public static readonly string SQL_GetDataFromProfilePolicies = 
+        public static readonly string SQL_GetDataFromProfilePolicies =
             @"SELECT PK_ProfilePolicies ,
                 FK_Profiles ,
                 FK_PolicyTypes ,
@@ -60,10 +60,10 @@ namespace ETLBoxDemo.src.Manager
                 Comments ,
                 DateInserted ,
                 LastUpdated FROM dbo.ProfilePolicies With(Nolock)
-            WHERE (LastUpdated >= '2012-03-12 20:50:00' OR DateInserted >= '2012-03-12 20:50:00') 
-            AND LastUpdated <= '2012-01-24 11:06:00' and DateInserted <= '2012-01-24 11:06:00'";
+            WHERE (LastUpdated >=  '{0}' OR DateInserted >=  '{0}') 
+            AND LastUpdated <= '{1}' and DateInserted <= '{1}'";
 
-        public static readonly string SQL_GetDataFromContactMethodPolicies = 
+        public static readonly string SQL_GetDataFromContactMethodPolicies =
             @"SELECT PK_ContactMethodPolicies ,
                 FK_ContactMethod ,
                 FK_PolicyTypes ,
@@ -75,10 +75,10 @@ namespace ETLBoxDemo.src.Manager
                 Comments ,
                 DateInserted ,
                 LastUpdated FROM dbo.ContactMethodPolicies With(Nolock)
-            WHERE (LastUpdated >= '2012-03-12 20:50:00' OR DateInserted >= '2012-03-12 20:50:00') 
-            AND LastUpdated <= '2012-01-24 11:06:00' and DateInserted <= '2012-01-24 11:06:00'";
+            WHERE (LastUpdated >= '{0}' OR DateInserted >= '{0}') 
+            AND LastUpdated <= '{1}' and DateInserted <= '{1}'";
 
-        public static readonly string SQL_GetDataFromContactMethod = 
+        public static readonly string SQL_GetDataFromContactMethod =
             @"SELECT  cm.PK_ContactMethod,
                 cm.FK_Reservations,
                 cm.FK_Profiles,
@@ -96,9 +96,9 @@ namespace ETLBoxDemo.src.Manager
                 cm.CMExtraData, 
                 cm.InactiveDate, 
                 cm.RecordStatus FROM dbo.V_ContactMethod cm with (nolock) 
-            WHERE  (cm.LastUpdated >= '2012-03-12 20:50:00' OR cm.DateInserted >= '2012-03-12 20:50:00') and cm.LastUpdated <= '2012-01-24 11:06:00' and cm.DateInserted <= '2012-01-24 11:06:00'";
+            WHERE  (cm.LastUpdated >= '{0}' OR cm.DateInserted >= '{0}') and cm.LastUpdated <= '{1}' and cm.DateInserted <= '{1}'";
 
-        public static readonly string SQL_GetDataFromActionComments = 
+        public static readonly string SQL_GetDataFromActionComments =
             @"SELECT PK_ActionComments, 
             FK_Internal, 
             KeyTable, 
@@ -121,7 +121,7 @@ namespace ETLBoxDemo.src.Manager
             RecordStatus, 
             CommentClass, 
             ResortID FROM dbo.[V_PMS_ActionComments] p 
-            WHERE (p.LastUpdated >= '2012-03-12 20:50:00' OR p.DateInserted >= '2012-03-12 20:50:00') and p.LastUpdated <= '2012-01-24 11:06:00' and p.DateInserted <= '2012-01-24 11:06:00'";
+            WHERE (p.LastUpdated >= '{0}' OR p.DateInserted >= '{0}') and p.LastUpdated <= '{1}' and p.DateInserted <= '{1}'";
 
         public static readonly string SQL_GetDataFromAddress =
             @"SELECTA.PK_Address, 
@@ -144,12 +144,12 @@ namespace ETLBoxDemo.src.Manager
                 A.IsPrimary, 
                 A.AddressCleansed, 
                 A.AddressLanguage FROM dbo.V_Address A with(nolock) 
-            WHERE RecordStatus = 'Active' AND (A.LastUpdated >= '2012-03-12 20:50:00' OR A.DateInserted >= '2012-03-12 20:50:00') and A.LastUpdated <= '2012-01-24 11:06:00' and A.DateInserted <= '2012-01-24 11:06:00'";
+            WHERE RecordStatus = 'Active' AND (A.LastUpdated >= '{0}' OR A.DateInserted >= '{0}') and A.LastUpdated <= '{1}' and A.DateInserted <= '{1}'";
         
-        public static readonly string SQL_GetSourceNameFromContactMethod = 
+        public static readonly string SQL_GetSourceNameFromContactMethod =
             @"SELECT cm.PK_ContactMethod, 
                 cm.SourceName FROM dbo.ContactMethod cm with (nolock) 
-            WHERE (cm.LastUpdated >= '2012-03-12 20:50:00' OR cm.DateInserted >= '2012-03-12 20:50:00') and cm.LastUpdated <= '2012-01-24 11:06:00' and cm.DateInserted <= '2012-01-24 11:06:00'";
+            WHERE (cm.LastUpdated >= '{0}' OR cm.DateInserted >= '{0}') and cm.LastUpdated <= '{1}' and cm.DateInserted <='{1}'";
         
         public static readonly string SQL_UpdatePMS_Address = @"UPDATE PMS_Address SET AddressTypeCode = 'W' WHERE AddressTypeCode = 'U'";
         
@@ -170,14 +170,14 @@ namespace ETLBoxDemo.src.Manager
                     sr.LastUpdated ,
                     sr.Checksum ,
                     sr.IsDirty ,
-                    sr.Quantity FROM dbo.V_SpecialRequests AS sr With(Nolock) WHERE  (sr.LastUpdated >= '@LastUpdated' OR sr.DateInserted >= '@DateInserted') and sr.LastUpdated <= '@LastUpdated' and sr.DateInserted <= '@DateInserted'";
+                    sr.Quantity FROM dbo.V_SpecialRequests AS sr With(Nolock) WHERE  (sr.LastUpdated >= '{0}' OR sr.DateInserted >= '{0}') and sr.LastUpdated <= '{1}' and sr.DateInserted <= '{1}'";
 
-        public static readonly string SQL_GetDataFromSpecialRequests = 
+        public static readonly string SQL_GetDataFromSpecialRequests =
             @"SELECT [PK_SpecialRequests],
                         [FK_Profiles],
                         [RequestType],
                         [RequestCode],
-                        CAST( REPLACE(sr.RequestComments, '?', '') AS VARCHAR(1000) )  AS RequestComments  FROM SpecialRequests sr WITH(NOLOCK)  WHERE FK_Profiles IS NOT NULL AND  (sr.LastUpdated >= '@LastUpdated' OR sr.DateInserted >= '@DateInserted') and sr.LastUpdated <= '@LastUpdated' and sr.DateInserted <= '@DateInserted'";
+                        CAST( REPLACE(sr.RequestComments, '?', '') AS VARCHAR(1000) )  AS RequestComments  FROM SpecialRequests sr WITH(NOLOCK)  WHERE FK_Profiles IS NOT NULL AND  (sr.LastUpdated >= '{0}' OR sr.DateInserted >= '{0}') and sr.LastUpdated <= '{1}' and sr.DateInserted <= '{1}'";
 
         public static readonly string SQL_GetDataFromProfiles = 
             @"SELECT ''AS PropertyCode,
@@ -271,7 +271,7 @@ namespace ETLBoxDemo.src.Manager
                         p.Nationality
                         FROM Profiles p with(nolock) inner join dbo.ETL_TEMP_Profiles as e with(nolock) ON p.PK_Profiles = e.PK_Profiles WHERE p.RecordStatus = 'Active' AND p.ExternalProfileId <> ''";
 
-        public static readonly string SQL_GetDataFromProfilesExt = 
+        public static readonly string SQL_GetDataFromProfilesExt =
             @"SELECT e.PK_ProfilesExt, 
                         e.FK_Profiles, 
                         e.RecordStatus,
@@ -299,7 +299,7 @@ namespace ETLBoxDemo.src.Manager
                         e.Blacklist,
                         e.BlacklistMessage,
                         e.AnonymizationStatus
-                        FROM dbo.Profiles_Ext e With(Nolock) WHERE  (e.LastUpdated >= '2012-03-12 20:50:00' OR e.DateInserted >= '2012-03-12 20:50:00') and e.LastUpdated <= '2012-01-24 11:06:00' and e.DateInserted <= '2012-01-24 11:06:00'";
+                        FROM dbo.Profiles_Ext e With(Nolock) WHERE  (e.LastUpdated >='{0}' OR e.DateInserted >= '{0}') and e.LastUpdated <= '{1}' and e.DateInserted <= '{1}'";
 
 		public static readonly string SQL_MoveBirthday =
             @"SELECT p.PK_Profiles, 
@@ -399,7 +399,7 @@ namespace ETLBoxDemo.src.Manager
                      THEN SUBSTRING(cm.CMData, 1, CHARINDEX('@', cm.CMData))+'cendyn17.com' ELSE
                      SUBSTRING(LTRIM(RTRIM(cm.CMData)),1,70) END AS Email, 0 AS EmailStatus,  CASE WHEN cm.CMCategory = 'EMAIL' THEN isnull(cm.IsPrimary,1) ELSE 1 END AS 'IsPrimaryCustom' FROM    dbo.V_ContactMethod cm WITH (NOLOCK)
                     WHERE CMData LIKE '%@%' AND ISNULL(FK_Reservations,  '00000000-0000-0000-0000-000000000000') 
-					                    = '00000000-0000-0000-0000-000000000000'  AND ISNULL(RecordStatus,'Active') = 'Active' and  (cm.LastUpdated >= '2012-03-12 20:50:00' OR cm.DateInserted >= '2012-03-12 20:50:00') and cm.LastUpdated <= '2012-01-24 11:06:00' and cm.DateInserted <= '2012-01-24 11:06:00') A WHERE A.isprimaryCustom = 1";
+					                    = '00000000-0000-0000-0000-000000000000'  AND ISNULL(RecordStatus,'Active') = 'Active' and  (cm.LastUpdated >= '{0}' OR cm.DateInserted >= '{0}') and cm.LastUpdated <= '{1}' and cm.DateInserted <= '{1}') A WHERE A.isprimaryCustom = 1";
 
         public static readonly string SQL_EmailListTypeOfData =
                 @"SELECT FK_Internal, ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
@@ -407,7 +407,7 @@ namespace ETLBoxDemo.src.Manager
 
         public static readonly string SQL_UDF31TypeOfData =
                 @"SELECT FK_Internal, ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
-wher            e RecordStatus = 'Active' and ColumnName = 'UDFC31'";
+                    where RecordStatus = 'Active' and ColumnName = 'UDFC31'";
 
         public static readonly string SQL_KanaLastNameTypeOfData =
                 @"SELECT u.FK_Internal ,
@@ -469,6 +469,447 @@ wher            e RecordStatus = 'Active' and ColumnName = 'UDFC31'";
                             INNER JOIN dbo.ETL_TEMP_PROFILES AS e With(Nolock)
                             ON u.FK_Internal = e.PK_Profiles
                             where u.RecordStatus = 'Active' and u.TableName = 'Profiles' and u.ColumnName = 'GHA_EMAIL'";
+
+        public static readonly string SQL_UDFDataForHotel_Offer_Email =
+                @"SELECT u.FK_Internal, u.ColumnName, u.UDFValue FROM dbo.V_UDFData AS u WITH(NOLOCK) 
+                            INNER JOIN dbo.ETL_TEMP_PROFILES AS e With(Nolock)
+                            ON u.FK_Internal = e.PK_Profiles
+                            where u.RecordStatus = 'Active' and u.TableName = 'Profiles' and u.ColumnName = 'HOTEL_OFFER_EMAIL'";
+
+        public static readonly string SQL_UDFDataForMarketing_Email =
+                @"SELECT u.FK_Internal, u.ColumnName, u.UDFValue FROM dbo.V_UDFData AS u WITH(NOLOCK) 
+                            INNER JOIN dbo.ETL_TEMP_PROFILES AS e With(Nolock)
+                            ON u.FK_Internal = e.PK_Profiles
+                            where u.RecordStatus = 'Active' and u.TableName = 'Profiles' and u.ColumnName = 'MARKETING_EMAIL'";
+
+        public static readonly string SQL_UDFDataForMarketing_Print =
+                @"SELECT u.FK_Internal, u.ColumnName, u.UDFValue FROM dbo.V_UDFData AS u WITH(NOLOCK) 
+                            INNER JOIN dbo.ETL_TEMP_PROFILES AS e With(Nolock)
+                            ON u.FK_Internal = e.PK_Profiles
+                            where u.RecordStatus = 'Active' and u.TableName = 'Profiles' and u.ColumnName = 'MARKETING_PRINT'";
+
+        public static readonly string SQL_UDFDataForMokara_Email =
+                @"SELECT u.FK_Internal, u.ColumnName, u.UDFValue FROM dbo.V_UDFData AS u WITH(NOLOCK) 
+                            INNER JOIN dbo.ETL_TEMP_PROFILES AS e With(Nolock)
+                            ON u.FK_Internal = e.PK_Profiles
+                            where u.RecordStatus = 'Active' and u.TableName = 'Profiles' and u.ColumnName = 'MOKARA_EMAIL'";
+
+        public static readonly string SQL_UDFDataForNew_Card_Request =
+                @"SELECT u.FK_Internal, u.ColumnName, u.UDFValue FROM dbo.V_UDFData AS u WITH(NOLOCK) 
+                            INNER JOIN dbo.ETL_TEMP_PROFILES AS e With(Nolock)
+                            ON u.FK_Internal = e.PK_Profiles
+                            where u.RecordStatus = 'Active' and u.TableName = 'Profiles' and u.ColumnName = 'NEW_CARD_REQUEST'";
+
+        public static readonly string SQL_UDFDataForNewsLetter_Email =
+                @"SELECT u.FK_Internal, u.ColumnName, u.UDFValue FROM dbo.V_UDFData AS u WITH(NOLOCK) 
+                            INNER JOIN dbo.ETL_TEMP_PROFILES AS e With(Nolock)
+                            ON u.FK_Internal = e.PK_Profiles
+                            where u.RecordStatus = 'Active' and u.TableName = 'Profiles' and u.ColumnName = 'NEWSLETTER_EMAIL'";
+
+        public static readonly string SQL_UDFDataForSG_Account_Summary =
+                @"SELECT u.FK_Internal, u.ColumnName, u.UDFValue FROM dbo.V_UDFData AS u WITH(NOLOCK) 
+                            INNER JOIN dbo.ETL_TEMP_PROFILES AS e With(Nolock)
+                            ON u.FK_Internal = e.PK_Profiles
+                            where u.RecordStatus = 'Active' and u.TableName = 'Profiles' and u.ColumnName = 'SG_ACCOUNT_SUMMARY'";
+
+        public static readonly string SQL_UDFDataForTransaction_Email =
+                @"SELECT u.FK_Internal, u.ColumnName, u.UDFValue FROM dbo.V_UDFData AS u WITH(NOLOCK) 
+                            INNER JOIN dbo.ETL_TEMP_PROFILES AS e With(Nolock)
+                            ON u.FK_Internal = e.PK_Profiles
+                            where u.RecordStatus = 'Active' and u.TableName = 'Profiles' and u.ColumnName = 'TRANSACTION_EMAIL'";
+
+        public static readonly string SQL_UDFDataForSG_Email =
+                @"SELECT u.FK_Internal, u.ColumnName, u.UDFValue FROM dbo.V_UDFData AS u WITH(NOLOCK) 
+                            INNER JOIN dbo.ETL_TEMP_PROFILES AS e With(Nolock)
+                            ON u.FK_Internal = e.PK_Profiles
+                            where u.RecordStatus = 'Active' and u.TableName = 'Profiles' and u.ColumnName = 'SG_Email'";
+
+        public static readonly string SQL_GetUDFData =
+                @"SELECT u.PK_UDFData,
+                           u.RecordStatus,
+                           u.CendynPropertyID,
+                           u.FK_Internal,
+                           u.ModuleName,
+                           CASE
+                               WHEN u.TableName = 'NAME' THEN
+                                   'Profiles'
+                               ELSE
+                                   u.TableName
+                           END AS TableName,
+                           um.Description AS ColumnName,
+                           u.UDFValue,
+                           u.DateInserted,
+                           u.LastUpdated,
+                           u.Checksum,
+                           u.IsDirty
+                    FROM dbo.UDFData AS u WITH (NOLOCK)
+                        INNER JOIN dbo.UDFField_Mapping AS um WITH (NOLOCK)
+                            ON u.ColumnName = um.UDFFieldName
+                        INNER JOIN dbo.ETL_TEMP_PROFILES AS p WITH (NOLOCK)
+                            ON u.FK_Internal = p.PK_Profiles
+                    UNION
+                    SELECT u.PK_UDFData,
+                           u.RecordStatus,
+                           u.CendynPropertyID,
+                           u.FK_Internal,
+                           u.ModuleName,
+                           CASE
+                               WHEN u.TableName = 'NAME' THEN
+                                   'Profiles'
+                               ELSE
+                                   u.TableName
+                           END AS TableName,
+                           um.Description AS ColumnName,
+                           u.UDFValue,
+                           u.DateInserted,
+                           u.LastUpdated,
+                           u.Checksum,
+                           u.IsDirty
+                    FROM dbo.UDFData AS u WITH (NOLOCK)
+                        INNER JOIN dbo.UDFField_Mapping AS um WITH (NOLOCK)
+                            ON u.ColumnName = um.Description
+                        INNER JOIN dbo.ETL_TEMP_PROFILES AS p WITH (NOLOCK)
+                            ON p.PK_Profiles = u.FK_Internal
+                    UNION
+                    SELECT u.PK_UDFData,
+                           u.RecordStatus,
+                           u.CendynPropertyID,
+                           u.FK_Internal,
+                           u.ModuleName,
+                           u.TableName,
+                           u.ColumnName,
+                           u.UDFValue,
+                           u.DateInserted,
+                           u.LastUpdated,
+                           u.Checksum,
+                           u.IsDirty
+                    FROM dbo.UDFData AS u WITH (NOLOCK)
+                        INNER JOIN dbo.ETL_TEMP_PROFILES AS e WITH (NOLOCK)
+                            ON u.FK_Internal = e.PK_Profiles
+                    WHERE NOT EXISTS
+                    (
+                        SELECT 1
+                        FROM dbo.UDFField_Mapping WITH (NOLOCK)
+                        WHERE u.ColumnName = UDFFieldName
+                              OR u.ColumnName = Description
+                    );";
+
+        public static readonly string SQL_UDFDataForSalesRep =
+                @"SELECT FK_Internal, 'Sales Rep' as ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
+                    where RecordStatus = 'Active' and TableName = 'Profiles' and ColumnName = 'grep'";
+
+        public static readonly string SQL_UDFDataForEstrate =
+                @"SELECT FK_Internal, 'Est Rate' as ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
+                    where RecordStatus = 'Active' and TableName = 'Profiles' and ColumnName = 'revest'";
+
+        public static readonly string SQL_UDFDataForDepart =
+                @"SELECT FK_Internal, 'Depart' as ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
+                    where RecordStatus = 'Active' and TableName = 'Profiles' and ColumnName = 'gdepart'";
+
+        public static readonly string SQL_UDFDataForArrival =
+                @"SELECT FK_Internal, 'Arrival' as ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
+                    where RecordStatus = 'Active' and TableName = 'Profiles' and ColumnName = 'garrive'";
+
+        public static readonly string SQL_UDFDataForBlockRef =
+                @"SELECT FK_Internal, 'Block Ref' as ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
+                    where RecordStatus = 'Active' and TableName = 'Profiles' and ColumnName = 'gref'";
+
+        public static readonly string SQL_UDFDataForMarketSegment =
+                @"SELECT FK_Internal, 'Market Segment' as ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
+                    where RecordStatus = 'Active' and TableName = 'Profiles' and ColumnName = 'gmrkt'";
+
+        public static readonly string SQL_UDFDataForMarketSubSegment =
+                @"SELECT FK_Internal, 'Market SubSegment' as ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
+                    where RecordStatus = 'Active' and TableName = 'Profiles' and ColumnName = 'gsubmkt''";
+
+        public static readonly string SQL_UDFDataForSource =
+                @"SELECT FK_Internal, 'Source' as ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
+                    where RecordStatus = 'Active' and TableName = 'Profiles' and ColumnName = 'source'";
+
+        public static readonly string SQL_UDFDataForNotes =
+                @"SELECT FK_Internal, 'Notes' as ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
+                    where RecordStatus = 'Active' and TableName = 'Profiles' and ColumnName = 'remarks'";
+
+        public static readonly string SQL_UDFDataForBanned =
+                @"SELECT FK_Internal, 'Banned' as ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
+                    where RecordStatus = 'Active' and TableName = 'Profiles' and ColumnName = 'blaklisted'";
+
+        public static readonly string SQL_UDFDataForAddress3 =
+                @"SELECT FK_Internal, 'Address 3' as ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
+                    where RecordStatus = 'Active' and TableName = 'Profiles' and ColumnName = 'address3'";
+
+        public static readonly string SQL_UDFDataForAlternate =
+                @"SELECT FK_Internal, 'Alternate' as ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
+                    where RecordStatus = 'Active' and TableName = 'Profiles' and ColumnName = 'altname'";
+
+        public static readonly string SQL_GetDataFromAddressToUpdateCompanyName =
+                @"SELECT x.FK_Profiles, convert(nvarchar(100), x.CompanyName) as CompanyName FROM (SELECT A.FK_Profiles, A.Address1 as CompanyName, 
+                    ROW_NUMBER() OVER (PARTITION BY A.FK_Profiles ORDER BY A.DateInserted, A.LastUpdated DESC) rn
+                    FROM dbo.Address A WITH (NOLOCK)
+                    WHERE isnull(A.recordstatus, 'Active') = 'Active'
+                    and ISNULL(A.Address1, '') <> '' and ISNULL(A.Address2, '') <> '' 
+                    and (A.LastUpdated >= '{0}' OR A.DateInserted >= '{0}') 
+                    and A.LastUpdated <= '{1}' 
+                    and A.DateInserted <= '{1}') x
+                    WHERE x.rn = 1";
+
+        public static readonly string SQL_UDFDataForCNotes =
+                @"SELECT  FK_Internal ,
+                            ColumnName ,
+                            UDFValue
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   ColumnName IN ( 'cnotes' )
+                            AND ModuleName = 'OpenTable'
+                            AND TableName = 'Profiles'
+                            AND RecordStatus = 'Active';";
+
+        public static readonly string SQL_UDFDataForCount_Cancel =
+                @"SELECT  FK_Internal ,
+                            ColumnName ,
+                            UDFValue
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   ColumnName IN ( 'count_cancel' )
+                            AND ModuleName = 'OpenTable'
+                            AND TableName = 'Profiles'
+                            AND RecordStatus = 'Active';";
+
+        public static readonly string SQL_UDFDataForCount_NoShow =
+                @"SELECT  FK_Internal ,
+                            ColumnName ,
+                            UDFValue
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   ColumnName IN ( 'count_noshow' )
+                            AND ModuleName = 'OpenTable'
+                            AND TableName = 'Profiles'
+                            AND RecordStatus = 'Active';";
+
+        public static readonly string SQL_UDFDataForCount_Resos =
+                @"SELECT  FK_Internal ,
+                            ColumnName ,
+                            UDFValue
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   ColumnName IN ( 'count_resos' )
+                            AND ModuleName = 'OpenTable'
+                            AND TableName = 'Profiles'
+                            AND RecordStatus = 'Active';";
+
+        public static readonly string SQL_UDFDataForCustcodes =
+                @"SELECT  FK_Internal ,
+                            ColumnName ,
+                            UDFValue
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   ColumnName IN ( 'custcodes' )
+                            AND ModuleName = 'OpenTable'
+                            AND TableName = 'Profiles'
+                            AND RecordStatus = 'Active';";
+
+        public static readonly string SQL_UDFDataForBAPExpiration =
+                @"SELECT  FK_Internal ,
+                            ColumnName ,
+                            UDFValue
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   ColumnName IN ( 'BAPExpiration' )
+                            AND ModuleName = 'Counterpoint'
+                            AND TableName = 'Profiles'
+                            AND RecordStatus = 'Active';";
+
+        public static readonly string SQL_UDFDataForChildMembership =
+                @"SELECT  FK_Internal ,
+                            ColumnName ,
+                            UDFValue
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   ColumnName IN ( 'ChildMembership' )
+                            AND ModuleName = 'Counterpoint'
+                            AND TableName = 'Profiles'
+                            AND RecordStatus = 'Active';";
+
+        public static readonly string SQL_UDFDataForComment =
+                @"SELECT  FK_Internal ,
+                            ColumnName ,
+                            UDFValue
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   ColumnName IN ( 'Comment' )
+                            AND ModuleName = 'Counterpoint'
+                            AND TableName = 'Profiles'
+                            AND RecordStatus = 'Active';";
+
+        public static readonly string SQL_UDFDataForCreatedOnline =
+                @"SELECT  FK_Internal ,
+                            ColumnName ,
+                            UDFValue
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   ColumnName IN ( 'CreatedOnline' )
+                            AND ModuleName = 'Counterpoint'
+                            AND TableName = 'Profiles'
+                            AND RecordStatus = 'Active';";
+
+        public static readonly string SQL_UDFDataForCustomerCode =
+                @"SELECT  FK_Internal ,
+                            ColumnName ,
+                            UDFValue
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   ColumnName IN ( 'CustomerCode' )
+                            AND ModuleName = 'Counterpoint'
+                            AND TableName = 'Profiles'
+                            AND RecordStatus = 'Active';";
+
+        public static readonly string SQL_UDFDataForHasOnlineProfile =
+                @"SELECT  FK_Internal ,
+                            ColumnName ,
+                            UDFValue
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   ColumnName IN ( 'HasOnlineProfile' )
+                            AND ModuleName = 'Counterpoint'
+                            AND TableName = 'Profiles'
+                            AND RecordStatus = 'Active';";
+
+        public static readonly string SQL_UDFDataForLastOnlineOrderDate =
+                @"SELECT  FK_Internal ,
+                            ColumnName ,
+                            UDFValue
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   ColumnName IN ( 'LastOnlineOrderDate' )
+                            AND ModuleName = 'Counterpoint'
+                            AND TableName = 'Profiles'
+                            AND RecordStatus = 'Active';";
+
+        public static readonly string SQL_UDFDataForLastOnlineOrderNumber =
+                @"SELECT  FK_Internal ,
+                            ColumnName ,
+                            UDFValue
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   ColumnName IN ( 'LastOnlineOrderNumber' )
+                            AND ModuleName = 'Counterpoint'
+                            AND TableName = 'Profiles'
+                            AND RecordStatus = 'Active';";
+
+        public static readonly string SQL_UDFDataForOmniPassBarcode =
+                @"SELECT  FK_Internal ,
+                            ColumnName ,
+                            UDFValue
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   ColumnName IN ( 'OmniPassBarcode' )
+                            AND ModuleName = 'Counterpoint'
+                            AND TableName = 'Profiles'
+                            AND RecordStatus = 'Active';";
+
+        public static readonly string SQL_UDFDataForOmniPassID =
+                @"SELECT  FK_Internal ,
+                            ColumnName ,
+                            UDFValue
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   ColumnName IN ( 'OmniPassID' )
+                            AND ModuleName = 'Counterpoint'
+                            AND TableName = 'Profiles'
+                            AND RecordStatus = 'Active';";
+
+        public static readonly string SQL_UDFDataForOnlineCustomerNumber =
+                @"SELECT  FK_Internal ,
+                            ColumnName ,
+                            UDFValue
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   ColumnName IN ( 'OnlineCustomerNumber' )
+                            AND ModuleName = 'Counterpoint'
+                            AND TableName = 'Profiles'
+                            AND RecordStatus = 'Active';";
+
+        public static readonly string SQL_UDFDataForProductDelivery =
+                @"SELECT  FK_Internal ,
+                            ColumnName ,
+                            UDFValue
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   ColumnName IN ( 'ProductDelivery' )
+                            AND ModuleName = 'Counterpoint'
+                            AND TableName = 'Profiles'
+                            AND RecordStatus = 'Active';";
+
+        public static readonly string SQL_UDFDataForPROF_COD_5 =
+                @"SELECT  FK_Internal ,
+                            ColumnName ,
+                            UDFValue
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   ColumnName IN ( 'PROF_COD_5' )
+                            AND ModuleName = 'Counterpoint'
+                            AND TableName = 'Profiles'
+                            AND RecordStatus = 'Active';";
+
+        public static readonly string SQL_UDFDataForUDFC20 =
+                @"SELECT FK_Internal, ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
+                    where RecordStatus = 'Active' and ColumnName = 'UDFC20'";
+
+        public static readonly string SQL_UDFDataForUDFC22 =
+                @"SELECT FK_Internal, ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
+                    where RecordStatus = 'Active' and ColumnName = 'UDFC22'";
+
+        public static readonly string SQL_UDFDataForUDFC23 =
+                @"SELECT FK_Internal, ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
+                    where RecordStatus = 'Active' and ColumnName = 'UDFC23'";
+
+        public static readonly string SQL_UDFDataForUDFC33 =
+                @"SELECT FK_Internal, ColumnName, UDFValue FROM dbo.UDFData WITH(NOLOCK) 
+                    where RecordStatus = 'Active' and ColumnName = 'UDFC33'";
+
+        public static readonly string SQL_GetDataFromProfilesToUpdateTwoStatus =
+                @"SELECT  p.PK_Profiles, p.RecordStatus, 0 as D_Customer_RecordStatus FROM  dbo.Profiles p with (nolock)  
+                    WHERE p.RecordStatus = 'Inactive' 
+                    AND (p.LastUpdated >= '{0}' OR p.DateInserted >= '{0}') 
+                    and p.LastUpdated <= '{1}' and p.DateInserted <= '{1}'";
+
+        public static readonly string SQL_GetDataFromV_Address =
+                @"SELECT FK_Profiles ,
+                           AddressTypeCode ,
+                           Address1 ,
+                           Address2 ,
+                           City ,
+                           StateProvinceCode ,
+                           ZipCode ,
+                           CountryCode ,
+                           DivisionCode ,
+                           RegionCode ,
+                           ZipCodePlus4 ,
+                           DedupeCheck ,
+                           AddressStatus
+                    FROM   (   SELECT a.FK_Profiles ,
+                                      a.AddressTypeCode ,
+                                      CASE WHEN ISNULL(a.Address1, '') = ''
+                                                AND ISNULL(a.Address2, '') <> '' THEN a.Address2
+                                           ELSE a.Address1
+                                      END AS Address1 ,
+                                      CASE WHEN ISNULL(a.Address1, '') = '' THEN ''
+                                           ELSE a.Address2
+                                      END AS Address2 ,
+                                      CAST(a.PostalCode AS NVARCHAR(30)) AS ZipCode ,
+                                      a.City AS City ,
+                                      a.StateProvince AS StateProvinceCode ,
+                                      CAST(a.CountryCode AS NVARCHAR(20)) AS CountryCode ,
+                                      0 AS DivisionCode ,
+                                      0 AS RegionCode ,
+                                      0 AS DedupeCheck ,
+                                      0 AS AddressStatus ,
+                                      NULL AS ZipCodePlus4 ,
+                                      RANK() OVER ( PARTITION BY a.FK_Profiles
+                                                  ORDER BY  CASE WHEN a.IsPrimary = 1 THEN 'a' ELSE  AddressTypeCode END ASC ) AS AddressRank
+                               FROM   dbo.V_Address a WITH ( NOLOCK )
+                                      INNER JOIN dbo.ETL_TEMP_PROFILES AS p WITH ( NOLOCK ) ON a.FK_Profiles = p.PK_Profiles
+                               WHERE  a.RecordStatus = 'Active'
+                                      AND a.AddressTypeCode IN ( 'H', 'U', 'W', 'L' )) b
+                    WHERE  b.AddressRank = 1;";
+
+        public static readonly string SQL_GetAnniversaryData =
+                @"SELECT  FK_Internal ,
+                            CONVERT(NVARCHAR(50), SUBSTRING(ISNULL(UDFValue, ''), 1, 50)) AS Anniversary
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   RecordStatus = 'Active'
+                            AND TableName = 'Profiles'
+                            AND ColumnName = 'AnniversaryDate'";
+
+        public static readonly string SQL_GetSpouseBirthData =
+                @"SELECT  FK_Internal ,
+                            CONVERT(NVARCHAR(50), SUBSTRING(ISNULL(UDFValue, ''), 1, 20)) AS SpouseBirthDate 
+                    FROM    dbo.UDFData WITH ( NOLOCK )
+                    WHERE   RecordStatus = 'Active'
+                            AND TableName = 'Profiles'
+                            AND ColumnName = 'SpouseBirthDate'";
 
         public static readonly string SQL_GetRateTypeForBiltmore =
             @"SELECT CONVERT(VARCHAR(100), 'RateType') AS FieldName,

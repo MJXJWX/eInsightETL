@@ -216,7 +216,7 @@ namespace ETLBoxDemo.src.Manager
                 @"Select CustomerID, GlobalCustomerID, FK_Profiles from PMS_PROFILE_MAPPING with (nolock)";
 
         public static readonly string SQL_GetContactMethodInactiveRecords =
-                @"SELECT  cm.PK_ContactMethod FROM  dbo.PMS_ContactMethod cm with (nolock)  WHERE cm.RecordStatus = 'Inactive'  and (cm.LastUpdated >= '2012-03-12 20:50:00' OR cm.DateInserted >= '2012-03-12 20:50:00')  ";
+                @"SELECT  cm.PK_ContactMethod FROM  dbo.PMS_ContactMethod cm with (nolock)  WHERE cm.RecordStatus = 'Inactive'  and (cm.LastUpdated >= '{0}' OR cm.DateInserted >= '{0}')  ";
 
         public static readonly string SQL_DeleteD_Customer_Email = @"DELETE FROM D_Customer_Email WHERE PK_ContactMethod = @PK_ContactMethod";
 
@@ -328,6 +328,1361 @@ namespace ETLBoxDemo.src.Manager
                                   AND u.UpdateDate <= GETDATE()
                               )
                           );";
+
+        public static readonly string SQL_EmailVerifyWithBounceRules =
+                @"insert into D_CUSTOMER_EMAIL_SUMMARY
+                (PK_Email, EmailInsertDate, EmailHash, EmailDomainHash)
+                select distinct email, GETDATE() as EmailInsertDate, CHECKSUM(Email) as EmailHash, 
+                CHECKSUM(LTRIM(RTRIM(SUBSTRING(Email,CHARINDEX('@',Email)+(1),LEN(Email))))) as EmailDomainHash from D_Customer with (nolock)
+                where EmailStatus = 0 and Email like '%@%' and
+                Email not in (select PK_Email from D_CUSTOMER_EMAIL_SUMMARY with (nolock))
+
+                --Emails that need reprocessing of EmailStatus
+                IF OBJECT_ID('tempdb..#EmailsToUpdate') IS NOT NULL 
+                DROP TABLE #EmailsToUpdate
+
+                select PK_Email into #EmailsToUpdate from D_CUSTOMER_EMAIL_SUMMARY with (nolock)
+                where ETLDeliverDataUpdated = 1 or ETLBounceDataUpdated = 1 or EmailStatus = 0
+
+                --Pass 1: Flag all bad emails that have been gone through email validation service and has either bad domain or bad syntax.
+                Update D_CUSTOMER_EMAIL_SUMMARY
+                set EmailStatus = 4, EmailSummaryUpdateDate = GETDATE()
+                where EmailValidationStatus = 2 and EmailStatus <> 4
+
+                --Run by emailverify function as well
+                UPDATE  CES
+                SET     CES.EmailStatus = 4, EmailSummaryUpdateDate = GETDATE()   
+                FROM    D_CUSTOMER_EMAIL_SUMMARY AS CES
+                WHERE   CES.EmailStatus = 0 and dbo.IsValidEmail(CES.PK_Email) = 0
+
+                --Pass 2: Flag emails that are invalid due to bounce rules
+                Update es
+                set es.EmailStatus = 8, EmailSummaryUpdateDate = GETDATE()
+                from D_Customer_Email_Summary es with (nolock)
+                inner join #EmailsToUpdate eu with (nolock) on es.PK_Email = eu.PK_Email
+                where exists (
+                select 1 from D_Customer_Email_Bounce_Summary ebs with (nolock)
+                inner join Cendyn_CRM_Email_Bounce_Rules r with (nolock) 
+                on ebs.BounceReason = r.BounceReason
+                and ISNULL(ebs.BouncesAfterLastDeliver, TotalBounces) >= r.MaxBouncesAllowed 
+                and es.PK_Email = ebs.FK_Email
+                and r.BounceAction = 'Invalidate Email')
+                and es.EmailStatus not in (4,8)
+
+                --Pass 3: Invalid due to bounce rules (unsubscribe)
+                Update es
+                set es.EmailStatus = 9, EmailSummaryUpdateDate = GETDATE()
+                from D_Customer_Email_Summary es with (nolock)
+                inner join #EmailsToUpdate eu with (nolock) on es.PK_Email = eu.PK_Email
+                where exists (
+                select 1 from D_Customer_Email_Bounce_Summary ebs with (nolock)
+                inner join Cendyn_CRM_Email_Bounce_Rules r with (nolock) 
+                on ebs.BounceREason = r.BounceReason
+                and ISNULL(ebs.BouncesAfterLastDeliver, TotalBounces) >= r.MaxBouncesAllowed 
+                and es.PK_Email = ebs.FK_Email
+                and r.BounceAction = 'Unsubscribe Email')
+                and es.EmailStatus not in (4,8,9)
+
+                --Pass 4: Flag all emails that have been manually suppressed.
+                UPDATE CS
+                SET CS.EmailStatus = 7, EmailSummaryUpdateDate = GETDATE()
+                FROM dbo.D_CUSTOMER_EMAIL_SUMMARY CS with (nolock)
+                INNER JOIN dbo.eInsight_SuppressEmails S with (nolock)
+                ON CS.PK_Email = S.Email
+                WHERE CS.EmailStatus not in (4,7,8,9)
+
+                --Pass 5: Flag unsubscribed emails
+                UPDATE  CES
+                SET     CES.EmailStatus = 5, EmailSummaryUpdateDate = GETDATE()
+                FROM    D_Customer_Email_Summary AS CES
+                WHERE   CES.EmailStatus IN (0,1)
+                        AND EXISTS ( SELECT 1
+                                        FROM   ECONTACT_CUSTOMER_UNSUBSCRIBED AS U WITH (NOLOCK)
+                                        WHERE U.EmailAddress = CES.PK_Email ) 
+                     
+                --Abuse Unsubscribes
+                UPDATE  CES
+                SET     IsAbuseUnsubscribed = 1
+                FROM    D_Customer_Email_Summary AS CES WITH (NOLOCK) 
+                INNER JOIN ECONTACT_CUSTOMER_UNSUBSCRIBED AS U WITH (NOLOCK)
+                ON U.EmailAddress = CES.PK_Email
+                WHERE U.Method = 'Abuse Complaint' and CES.IsAbuseUnsubscribed = 0
+
+                --Global Unsubscribes
+                UPDATE  CES
+                SET     IsGlobalUnsubscribed = 1
+                FROM    D_Customer_Email_Summary AS CES WITH (NOLOCK) 
+                INNER JOIN ECONTACT_CUSTOMER_UNSUBSCRIBED AS U WITH (NOLOCK)
+                ON U.EmailAddress = CES.PK_Email
+                WHERE U.Method <> 'Abuse Complaint' and CES.IsGlobalUnsubscribed = 0
+
+                --Pass 6: Flag suppress emails that come from PMS (AllowEmail = 0)
+                Update CES
+                SET    CES.EmailStatus = 5, EmailSummaryUpdateDate = GETDATE()
+                FROM   D_Customer_Email_Summary CES with (nolock) inner join D_CUSTOMER C with (nolock)
+                on CES.PK_Email = C.Email 
+                WHERE CES.EmailStatus in (0,1) and ISNULL(C.AllowEmail, 1) = 0 and 
+                EXISTS (select 1 from D_PROPERTY P with (nolock) where P.PropertyCode = C.PropertyCode and P.UseAllowEmail = 1)
+
+                --Pass 7: Reset Status for emails that were bounced before but got delivered or just got delived as we know those are good.
+                Update D_CUSTOMER_EMAIL_SUMMARY
+                set EmailStatus = 1 ,EmailSummaryUpdateDate = GETDATE()
+                where ETLDeliverDataUpdated = 1 and EmailStatus in (0,8)
+
+                --Pass 8: Remaining Emails as good
+                Update D_CUSTOMER_EMAIL_SUMMARY
+                set EmailStatus = 1
+                where EmailValidationStatus = 1 and EmailStatus = 0
+
+                --Pass 9: emails that have not been validated yet by emailvalidation service will be validated by old verify
+                UPDATE  CES
+                SET     CES.EmailStatus = CASE WHEN dbo.IsValidEmail(CES.PK_Email) = 0 THEN 4 ELSE 1 END              
+                FROM    D_CUSTOMER_EMAIL_SUMMARY AS CES
+                WHERE   EmailStatus = 0
+
+                /* Update EmailStatus in D_Customer and D_Customer_Email_Summary if setting is ON */
+
+                /* Add setting when bounce rules go live
+                insert into eInsightCRM_ConfigurationSettings (ConfigurationSettingName, ConfigurationSettingValue, Created)
+                select 'UseEmailVerifyBounceRules', 'Y', GETDATE()
+                where not exists (select 1 from eInsightCRM_ConfigurationSettings where ConfigurationSettingName = 'UseEmailVerifyBounceRules')
+                */
+
+                IF exists (select 1 from eInsightCRM_ConfigurationSettings where ConfigurationSettingName = 'UseEmailVerifyBounceRules' 
+                and ConfigurationSettingValue = 'Y')  
+                begin 
+
+                /* 4 Statuses in D_Customer and D_Customer_Email. Blank/NULL (Status 2),  Valid (Status 1), Invalid (Status 4) and Unsubscribe (Status 5) */
+                ----------D_Customer----------
+                --NULL or Blank
+                Update C
+                Set C.EmailStatus = 2
+                From D_CUSTOMER C
+                WHERE (ltrim(rtrim(C.Email)) = '' OR C.Email IS NULL)
+                and C.EmailStatus <> 2
+                --Invalid
+                Update C
+                set C.EmailStatus = 4
+                from D_CUSTOMER C with (nolock) inner join D_CUSTOMER_EMAIL_SUMMARY ES with (nolock)
+                on C.Email = ES.PK_Email
+                where C.EmailStatus <> 4 and ES.EmailStatus in (4,7,8,9)
+                --Unsubscribed
+                Update C
+                set C.EmailStatus = 5
+                from D_CUSTOMER C with (nolock) inner join D_CUSTOMER_EMAIL_SUMMARY ES with (nolock)
+                on C.Email = ES.PK_Email
+                where C.EmailStatus <> 5 and ES.EmailStatus = 5
+                --Valid
+                Update C
+                set C.EmailStatus = 1
+                from D_CUSTOMER C with (nolock) inner join D_CUSTOMER_EMAIL_SUMMARY ES with (nolock)
+                on C.Email = ES.PK_Email
+                where C.EmailStatus <> 1 and ES.EmailStatus = 1
+
+                ----------D_Customer_Email----------
+                --Invalid
+                Update C
+                set C.EmailStatus = 4
+                from D_CUSTOMER_EMAIL C with (nolock) inner join D_CUSTOMER_EMAIL_SUMMARY ES with (nolock)
+                on C.Email = ES.PK_Email
+                where C.EmailStatus <> 4 and ES.EmailStatus in (4,7,8,9)
+                --Unsubscribed
+                Update C
+                set C.EmailStatus = 5
+                from D_CUSTOMER_EMAIL C with (nolock) inner join D_CUSTOMER_EMAIL_SUMMARY ES with (nolock)
+                on C.Email = ES.PK_Email
+                where C.EmailStatus <> 5 and ES.EmailStatus = 5
+                --Valid
+                Update C
+                set C.EmailStatus = 1
+                from D_CUSTOMER_EMAIL C with (nolock) inner join D_CUSTOMER_EMAIL_SUMMARY ES with (nolock)
+                on C.Email = ES.PK_Email
+                where C.EmailStatus <> 1 and ES.EmailStatus = 1
+                print 'Updates performed on D_Customer and D_Customer_Email as setting is enabled' 
+                end 
+                else 
+                begin print 'No updates performed on D_Customer and D_Customer_Email as setting is not enabled' 
+                end 
+
+                --Reset ETL Deliver and Bounce flags after emailverification is complete
+                Update es
+                set es.ETLBounceDataUpdated = 0, es.ETLDeliverDataUpdated = 0
+                from D_CUSTOMER_EMAIL_SUMMARY es with (nolock) inner join #EmailsToUpdate eu with (nolock)
+                on es.PK_Email = eu.PK_Email";
+
+        public static readonly string SQL_EmailVerifyOnD_Customer =
+                @"IF EXISTS
+                    (
+                    SELECT 1
+                    FROM eInsightCRM_ConfigurationSettings WITH
+                    (NOLOCK)
+                    WHERE ConfigurationSettingName = 'UseEmailVerifyBounceRules'
+                    AND ConfigurationSettingValue = 'Y'
+                    )
+                    GOTO skip_emailverify;
+                    SET NOCOUNT ON;
+
+                    DECLARE @ProcessStartTime DATETIME2;
+                    DECLARE @ProcessMessage VARCHAR(MAX);
+                    DECLARE @RowCount INT = 0;
+
+                    RAISERROR('Starting NONCONSENT Update', 0, 1) WITH NOWAIT;
+                    SET @ProcessStartTime = SYSDATETIME(); -- Start Timing Section
+                    SET @RowCount = 0;
+
+                    DECLARE @ETL_RowVersion_SettingKey VARCHAR(50) = 'ETL_RowVersion';
+                    DECLARE @ETL_EmailSubscriptionEvent_ID_SettingKey VARCHAR(50) = 'ETL_EmailSubscriptionEvent_Key';
+                    DECLARE @Starting_DBTS ROWVERSION = @@DBTS;
+                    DECLARE @Starting_EmailSubEventID INT;
+                    DECLARE @ETL_RowVersion ROWVERSION;
+                    DECLARE @ETL_EmailSubscriptionEvent_LastId INT;
+                    DECLARE @ETL_EmailVerify_CustomerID_SettingKey VARCHAR(50) = 'ETL_EmailVerify_CustomerID';
+                    DECLARE @Starting_ETL_EmailVerify_CustomerID INT;
+                    DECLARE @ETL_EmailVerify_CustomerID INT;
+
+                    -- Get the last CustomerID
+                    SELECT @Starting_ETL_EmailVerify_CustomerID = ISNULL(MAX(CustomerID), 0)
+                    FROM D_CUSTOMER WITH
+                    (NOLOCK);
+                    IF (NOT EXISTS
+                    (
+                    SELECT 1
+                    FROM [eInsightCRM_ConfigurationSettings] WITH
+                    (NOLOCK)
+                    WHERE [ConfigurationSettingName] = @ETL_EmailVerify_CustomerID_SettingKey
+                    )
+                    )
+                    BEGIN
+                    INSERT INTO [eInsightCRM_ConfigurationSettings]
+                    (
+                    [ConfigurationSettingName],
+                    [ConfigurationSettingValue],
+                    [Created],
+                    [LastUpdated]
+                    )
+                    VALUES
+                    (@ETL_EmailVerify_CustomerID_SettingKey, @Starting_ETL_EmailVerify_CustomerID, GETDATE(), GETDATE());
+                    END;
+                    SELECT @ETL_EmailVerify_CustomerID = CONVERT(INT, [ConfigurationSettingValue])
+                    FROM [eInsightCRM_ConfigurationSettings] WITH
+                    (NOLOCK)
+                    WHERE [ConfigurationSettingName] = @ETL_EmailVerify_CustomerID_SettingKey;
+
+                    SELECT @Starting_EmailSubEventID = ISNULL(MAX([id]), 0)
+                    FROM [email_subscription_event] WITH
+                    (NOLOCK);
+                    IF (NOT EXISTS
+                    (
+                    SELECT 1
+                    FROM [eInsightCRM_ConfigurationSettings] WITH
+                    (NOLOCK)
+                    WHERE [ConfigurationSettingName] = @ETL_EmailSubscriptionEvent_ID_SettingKey
+                    )
+                    )
+                    BEGIN
+                    INSERT INTO [eInsightCRM_ConfigurationSettings]
+                    (
+                    [ConfigurationSettingName],
+                    [ConfigurationSettingValue],
+                    [Created],
+                    [LastUpdated]
+                    )
+                    VALUES
+                    (@ETL_EmailSubscriptionEvent_ID_SettingKey, @Starting_EmailSubEventID, GETDATE(), GETDATE());
+                    END;
+                    SELECT @ETL_EmailSubscriptionEvent_LastId = CONVERT(INT, [ConfigurationSettingValue])
+                    FROM [eInsightCRM_ConfigurationSettings] WITH
+                    (NOLOCK)
+                    WHERE [ConfigurationSettingName] = @ETL_EmailSubscriptionEvent_ID_SettingKey;
+
+                    -- Get the last RowVersion from previous run
+                    IF (NOT EXISTS
+                    (
+                    SELECT 1
+                    FROM [eInsightCRM_ConfigurationSettings] WITH
+                    (NOLOCK)
+                    WHERE [ConfigurationSettingName] = @ETL_RowVersion_SettingKey
+                    )
+                    )
+                    BEGIN
+                    INSERT INTO [eInsightCRM_ConfigurationSettings]
+                    (
+                    [ConfigurationSettingName],
+                    [ConfigurationSettingValue],
+                    [Created],
+                    [LastUpdated]
+                    )
+                    VALUES
+                    (@ETL_RowVersion_SettingKey, CONVERT(VARCHAR(50), CONVERT(VARBINARY(8), @Starting_DBTS), 1), GETDATE(), GETDATE());
+                    END;
+                    SELECT @ETL_RowVersion = CONVERT(VARBINARY(8), [ConfigurationSettingValue], 1)
+                    FROM [eInsightCRM_ConfigurationSettings] WITH
+                    (NOLOCK)
+                    WHERE [ConfigurationSettingName] = @ETL_RowVersion_SettingKey;
+
+                    RAISERROR('    Last Subscription Event ID: %s', 0, 1, @ETL_EmailSubscriptionEvent_ID_SettingKey) WITH NOWAIT;
+                    DECLARE @ETL_RowVersion_VC VARCHAR(50) = CONVERT(VARCHAR(50), CONVERT(VARBINARY(8), @ETL_RowVersion), 1);
+                    RAISERROR('    Last RowVersion: %s', 0, 1, @ETL_RowVersion_VC) WITH NOWAIT;
+                    RAISERROR('    Last CustomerID: %d', 0, 1, @ETL_EmailVerify_CustomerID) WITH NOWAIT;
+
+                    CREATE TABLE #ChangedEmails
+                    (
+                    [Email] VARCHAR(255)
+                    );
+                    CREATE CLUSTERED INDEX email ON #ChangedEmails ([Email]);
+
+                    IF (@Starting_ETL_EmailVerify_CustomerID > @ETL_EmailVerify_CustomerID)
+                    BEGIN
+                    INSERT INTO #ChangedEmails
+                    (
+                    [Email]
+                    )
+                    SELECT DISTINCT
+                    C.[Email]
+                    FROM [D_CUSTOMER] C WITH
+                    (NOLOCK)
+                    WHERE C.[CustomerID]
+                    BETWEEN @ETL_EmailVerify_CustomerID AND @Starting_ETL_EmailVerify_CustomerID
+                    AND C.[EmailStatus] IN ( 1 )
+                    AND NOT EXISTS
+                    (
+                    SELECT 1 FROM #ChangedEmails WITH (NOLOCK) WHERE C.Email = Email
+                    );
+                    END;
+
+                    IF (@Starting_ETL_EmailVerify_CustomerID > @ETL_EmailVerify_CustomerID)
+                    BEGIN
+                    INSERT INTO #ChangedEmails
+                    (
+                    [Email]
+                    )
+                    SELECT DISTINCT
+                    C.[Email]
+                    FROM [D_CUSTOMER_EMAIL] C WITH
+                    (NOLOCK)
+                    WHERE C.[CustomerID]
+                    BETWEEN @ETL_EmailVerify_CustomerID AND @Starting_ETL_EmailVerify_CustomerID
+                    AND C.[EmailStatus] IN ( 1 )
+                    AND DB_NAME() LIKE '%Rosewood%'
+                    AND NOT EXISTS
+                    (
+                    SELECT 1 FROM #ChangedEmails WITH (NOLOCK) WHERE C.Email = Email
+                    );
+                    END;
+
+                    INSERT INTO #ChangedEmails
+                    (
+                    [Email]
+                    )
+                    SELECT DISTINCT
+                    C.[Email]
+                    FROM [D_CUSTOMER] C WITH
+                    (NOLOCK)
+                    INNER JOIN [L_DATA_SOURCE_CODE] SC WITH
+                    (NOLOCK)
+                    ON C.[SourceID] = SC.[SourceID]
+                    WHERE SC.[RowVersion] > @ETL_RowVersion
+                    AND NOT EXISTS
+                    (
+                    SELECT 1 FROM #ChangedEmails WITH (NOLOCK) WHERE C.Email = Email
+                    );
+
+                    INSERT INTO #ChangedEmails
+                    (
+                    [Email]
+                    )
+                    SELECT DISTINCT E.[Email]
+                    FROM [email_consent_status] E WITH
+                    (NOLOCK)
+                    WHERE [RowVersion] > @ETL_RowVersion
+                    AND NOT EXISTS
+                    (
+                    SELECT 1 FROM #ChangedEmails WITH (NOLOCK) WHERE E.Email = Email
+                    );
+
+                    INSERT INTO #ChangedEmails
+                    (
+                    [Email]
+                    )
+                    SELECT DISTINCT
+                    E.[email_address]
+                    FROM [email] E WITH
+                    (NOLOCK)
+                    INNER JOIN [email_subscription_event] ESE WITH
+                    (NOLOCK)
+                    ON E.[id] = ESE.[email_id]
+                    WHERE ESE.[id] > @ETL_EmailSubscriptionEvent_LastId
+                    AND NOT EXISTS
+                    (
+                    SELECT 1 FROM #ChangedEmails WITH (NOLOCK) WHERE E.email_address = Email
+                    );
+
+                    IF (EXISTS (SELECT TOP (1) 1 FROM #ChangedEmails))
+                    BEGIN
+                    BEGIN TRAN RESETEMAILSTATUS;
+                    -- Reset Valid,NonConsent Emails back to Unknown in 
+                    -- D_CUSTOMER & D_CUSTOMER_EMAIL
+                    UPDATE CE
+                    SET CE.[EmailStatus] = 0,
+                    CE.[UpdateDate] = GETDATE()
+                    FROM [D_CUSTOMER_EMAIL] CE
+                    WHERE CE.[EmailStatus] IN ( 1, 8 )
+                    AND EXISTS
+                    (
+                    SELECT 1 FROM #ChangedEmails WITH (NOLOCK) WHERE CE.[Email] = [Email]
+                    ) 
+                    AND DB_NAME() LIKE '%Rosewood%';
+
+                    SET @RowCount = @RowCount + @@ROWCOUNT;
+
+                    UPDATE C
+                    SET C.[EmailStatus] = 0,
+                    C.[UpdateDate] = GETDATE()
+                    FROM [D_CUSTOMER] C
+                    WHERE C.[EmailStatus] IN ( 1, 8 )
+                    AND EXISTS
+                    (
+                    SELECT 1 FROM #ChangedEmails WITH (NOLOCK) WHERE C.[Email] = [Email]
+                    );
+
+                    SET @RowCount = @RowCount + @@ROWCOUNT;
+
+                    COMMIT TRAN RESETEMAILSTATUS;
+                    END;
+
+                    DROP TABLE #ChangedEmails;
+
+                    UPDATE [eInsightCRM_ConfigurationSettings]
+                    SET [ConfigurationSettingValue] = @Starting_EmailSubEventID
+                    WHERE [ConfigurationSettingName] = @ETL_EmailSubscriptionEvent_ID_SettingKey;
+
+                    UPDATE [eInsightCRM_ConfigurationSettings]
+                    SET [ConfigurationSettingValue] = CONVERT(VARCHAR(50), CONVERT(VARBINARY(8), @Starting_DBTS), 1)
+                    WHERE [ConfigurationSettingName] = @ETL_RowVersion_SettingKey;
+
+                    UPDATE [eInsightCRM_ConfigurationSettings]
+                    SET [ConfigurationSettingValue] = @Starting_ETL_EmailVerify_CustomerID
+                    WHERE [ConfigurationSettingName] = @ETL_EmailVerify_CustomerID_SettingKey
+                    -- End of ETL Settings
+
+                    SET @ProcessMessage
+                    = 'Time Elapsed: ' + CAST(DATEDIFF(MILLISECOND, @ProcessStartTime, SYSDATETIME()) / 1000.00 AS VARCHAR) + 's';
+                    RAISERROR('    %i rows affected', 0, 1, @RowCount) WITH NOWAIT;
+                    RAISERROR('    %s', 0, 1, @ProcessMessage) WITH NOWAIT;
+                    RAISERROR('Starting EMAILSTATUSUPDATE', 0, 1) WITH NOWAIT;
+                    SET @ProcessStartTime = SYSDATETIME();
+                    SET @RowCount = 0;
+                    --check for new statuses
+                    DECLARE @CountEmailStatus INT;
+                    SET @CountEmailStatus =
+                    (
+                    SELECT COUNT(1) FROM dbo.D_CUSTOMER WITH (NOLOCK) WHERE EmailStatus = 0
+                    );
+
+                    BEGIN TRAN EMAILSTATUSUPDATE;
+
+                    IF @CountEmailStatus > 0
+                    BEGIN
+                    UPDATE C
+                    SET C.EmailStatus = CASE --NULL/Blank Emails 
+                                    WHEN LTRIM(RTRIM(C.Email)) = ''
+                                            OR C.Email IS NULL THEN
+                                        2
+                                    --Custom query to flag certain emails as status 7 added 8/23/2010 AK
+                                    WHEN C.Email LIKE '%@expedia.com' THEN
+                                        7
+                                    --Bad Emails
+                                    WHEN dbo.IsValidEmail(C.Email) = 0 THEN
+                                        4
+                                    --Has Consent?
+                                    WHEN dbo.fn_HasConsent(C.Email) = 0 THEN
+                                        8
+                                    -- 
+                                    ELSE
+                                        1
+                                END,
+                    C.EmailHash = CHECKSUM(C.Email),
+                    C.EmailDomainHash = CHECKSUM(LTRIM(RTRIM(SUBSTRING(C.Email, CHARINDEX('@', C.Email) + (1), LEN(C.Email)))))
+                    FROM D_CUSTOMER AS C
+                    WHERE EmailStatus = 0;
+
+                    SET @RowCount = @RowCount + @@ROWCOUNT;
+                    END;
+
+                    COMMIT TRAN EMAILSTATUSUPDATE;   
+                    SET @ProcessMessage
+                    = 'Time Elapsed: ' + CAST(DATEDIFF(MILLISECOND, @ProcessStartTime, SYSDATETIME()) / 1000.00 AS VARCHAR) + 's';
+                    RAISERROR('    %i rows affected', 0, 1, @RowCount) WITH NOWAIT;
+                    RAISERROR('    %s', 0, 1, @ProcessMessage) WITH NOWAIT;
+                    --Update to custom exclusion status for email addresses in eInsight_SupressEmails table. Added by AK-06/12/2013
+
+                    RAISERROR('Starting CUSTOM', 0, 1) WITH NOWAIT;
+                    SET @ProcessStartTime = SYSDATETIME();
+                    SET @RowCount = 0;
+                    BEGIN TRAN CUSTOM;
+
+                    UPDATE CS
+                    SET CS.EmailStatus = 7
+                    FROM dbo.D_CUSTOMER CS
+                    INNER JOIN dbo.eInsight_SuppressEmails S WITH
+                    (NOLOCK)
+                    ON CS.Email = S.Email
+                    WHERE CS.EmailStatus <> 7;
+
+                    SET @RowCount = @RowCount + @@ROWCOUNT;
+
+                    UPDATE CS
+                    SET CS.EmailStatus = 7
+                    FROM dbo.D_CUSTOMER CS
+                    INNER JOIN dbo.email AS e WITH
+                    (NOLOCK)
+                    ON CS.Email = e.email_address
+                    INNER JOIN dbo.eInsight_DomainExclusion AS d WITH
+                    (NOLOCK)
+                    ON d.ExcludeDomain = e.domain_name
+                    WHERE CS.EmailStatus <> 7;
+
+                    SET @RowCount = @RowCount + @@ROWCOUNT;
+                    COMMIT TRAN CUSTOM;
+                    SET @ProcessMessage
+                    = 'Time Elapsed: ' + CAST(DATEDIFF(MILLISECOND, @ProcessStartTime, SYSDATETIME()) / 1000.00 AS VARCHAR) + 's';
+                    RAISERROR('    %i rows affected', 0, 1, @RowCount) WITH NOWAIT;
+                    RAISERROR('    %s', 0, 1, @ProcessMessage) WITH NOWAIT;
+                    --check for bounces
+                    RAISERROR('Starting BOUNCES', 0, 1) WITH NOWAIT;
+                    SET @ProcessStartTime = SYSDATETIME();
+                    SET @RowCount = 0;
+                    BEGIN TRAN BOUNCES;
+
+                    UPDATE CB
+                    SET CB.EmailStatus = 6
+                    FROM D_CUSTOMER AS CB
+                    WHERE CB.EmailStatus IN ( 1, 8 )
+                    AND EXISTS
+                    (
+                    SELECT 1
+                    FROM ECONTACT_CONTACT_BOUNCE_REPORTS AS B WITH
+                    (NOLOCK)
+                    WHERE B.BounceReason NOT IN ( 'Auto Reply', 'General Soft Bounce', 'Mailbox FULL', 'DNS Failure',
+                                            'Transient Failure', 'Spam Detected', 'General Mail Block'
+                                        )
+                    AND B.BounceDetail NOT LIKE '%postmaster.info.aol.com/errors/554rlyb1%'
+                    AND B.BounceDetail NOT LIKE '%postmaster.yahoo.com/421-ts03%'
+                    AND B.BounceDetail NOT LIKE '%smtp;554%Comcast block for spam. Please see http://postmaster.comcast.net/smtp-error-codes.php#BL000000%'
+                    AND B.BounceDetail NOT LIKE '%smtp;421 mtain-mb03.r1000.mx.aol.com Service unavailable - try again later%'
+                    AND B.BounceDetail NOT LIKE '%smtp;421%.mx.aol.com Service unavailable - try again later%'
+                    AND B.EmailAddress = CB.Email
+                    );
+                    SET @RowCount = @RowCount + @@ROWCOUNT;
+                    COMMIT TRAN BOUNCES;
+                    SET @ProcessMessage
+                    = 'Time Elapsed: ' + CAST(DATEDIFF(MILLISECOND, @ProcessStartTime, SYSDATETIME()) / 1000.00 AS VARCHAR) + 's';
+                    RAISERROR('    %i rows affected', 0, 1, @RowCount) WITH NOWAIT;
+                    RAISERROR('    %s', 0, 1, @ProcessMessage) WITH NOWAIT;
+
+
+                    RAISERROR('Starting BOUNCES1', 0, 1) WITH NOWAIT;
+                    SET @ProcessStartTime = SYSDATETIME();
+                    SET @RowCount = 0;
+                    BEGIN TRAN BOUNCES1;
+
+                    UPDATE CB
+                    SET CB.EmailStatus = 6
+                    FROM D_CUSTOMER AS CB
+                    WHERE CB.EmailStatus IN ( 1, 8 )
+                    AND EXISTS
+                    (
+                    SELECT 1
+                    FROM [dbo].[SM_REPORT_BOUNCED] AL WITH
+                    (NOLOCK)
+                    WHERE AL.Category IN ( '2', '8', '9' )
+                    AND AL.Email = CB.Email
+                    );
+
+                    SET @RowCount = @RowCount + @@ROWCOUNT;
+
+                    UPDATE CB
+                    SET CB.EmailStatus = 6
+                    FROM D_CUSTOMER AS CB
+                    WHERE CB.EmailStatus IN ( 0, 1 )
+                    AND EXISTS
+                    (
+                    SELECT 1
+                    FROM dbo.SM_REPORT_BOUNCED WITH
+                    (NOLOCK)
+                    WHERE MailServiceSource = 'Maropost'
+                    AND BounceType = 'hard_bounce'
+                    AND Email = CB.Email
+                    );
+
+                    SET @RowCount = @RowCount + @@ROWCOUNT;
+                    COMMIT TRAN BOUNCES1;
+                    SET @ProcessMessage
+                    = 'Time Elapsed: ' + CAST(DATEDIFF(MILLISECOND, @ProcessStartTime, SYSDATETIME()) / 1000.00 AS VARCHAR) + 's';
+                    RAISERROR('    %i rows affected', 0, 1, @RowCount) WITH NOWAIT;
+                    RAISERROR('    %s', 0, 1, @ProcessMessage) WITH NOWAIT;
+                    --check for re-subscribes. This should be the last check to ensure re-subscribed emails are not flagged as unsubscribed
+                    RAISERROR('Starting SUB', 0, 1) WITH NOWAIT;
+                    SET @ProcessStartTime = SYSDATETIME();
+                    SET @RowCount = 0;
+                    BEGIN TRAN SUB;
+
+                    UPDATE CU
+                    SET CU.EmailStatus = 1
+                    FROM D_CUSTOMER AS CU
+                    WHERE CU.EmailStatus IN ( 5 )
+                    AND NOT EXISTS
+                    (
+                    SELECT 1
+                    FROM ECONTACT_CUSTOMER_UNSUBSCRIBED AS U WITH
+                    (NOLOCK)
+                    WHERE U.EmailAddress = CU.Email
+                    )
+                    AND
+                    (
+                    (
+                        (ISNULL(CU.AllowEMail, 1) = 1)
+                        AND (
+                            (
+                                SELECT UseAllowEmail
+                                FROM D_PROPERTY WITH
+                                    (NOLOCK)
+                                WHERE PropertyCode = CU.PropertyCode
+                            ) = 1
+                            )
+                    )
+                    OR
+                    (
+                        (ISNULL(CU.AllowMail, 1) = 1)
+                        AND (
+                            (
+                                SELECT UseAllowMail
+                                FROM D_PROPERTY WITH
+                                    (NOLOCK)
+                                WHERE PropertyCode = CU.PropertyCode
+                            ) = 1
+                            )
+                    )
+                    );
+                    SET @RowCount = @RowCount + @@ROWCOUNT;
+                    COMMIT TRAN SUB;
+                    SET @ProcessMessage
+                    = 'Time Elapsed: ' + CAST(DATEDIFF(MILLISECOND, @ProcessStartTime, SYSDATETIME()) / 1000.00 AS VARCHAR) + 's';
+                    RAISERROR('    %i rows affected', 0, 1, @RowCount) WITH NOWAIT;
+                    RAISERROR('    %s', 0, 1, @ProcessMessage) WITH NOWAIT;
+                    --check for unsubscribes. This should be the last check to ensure unsubscribed emails are not flagged as anything else
+                    RAISERROR('Starting UNSUB', 0, 1) WITH NOWAIT;
+                    SET @ProcessStartTime = SYSDATETIME();
+                    SET @RowCount = 0;
+                    BEGIN TRAN UNSUB;
+
+                    UPDATE CU
+                    SET CU.EmailStatus = 5
+                    FROM D_CUSTOMER AS CU
+                    WHERE CU.EmailStatus IN ( 1, 8 )
+                    AND
+                    (
+                    EXISTS
+                    (
+                    SELECT 1
+                    FROM ECONTACT_CUSTOMER_UNSUBSCRIBED AS U WITH
+                    (NOLOCK)
+                    WHERE U.EmailAddress = CU.Email
+                    )
+                    OR
+                    (
+                        (ISNULL(CU.AllowEMail, 1) = 0)
+                        AND (
+                            (
+                                SELECT UseAllowEmail
+                                FROM D_PROPERTY WITH
+                                    (NOLOCK)
+                                WHERE PropertyCode = CU.PropertyCode
+                            ) = 1
+                            )
+	                    AND DB_NAME() NOT LIKE '%FIRMDALE%'
+                    )
+                    OR
+                    (
+                        (ISNULL(CU.AllowEMail, 1) = 0)
+                        AND (
+                            (
+                                SELECT UseAllowEmail
+                                FROM D_PROPERTY WITH
+                                    (NOLOCK)
+                                WHERE PropertyCode = CU.PropertyCode
+                            ) = 1
+                            )
+	                    AND CU.InsertDate >= '{0}'
+	                    AND DB_NAME() LIKE '%FIRMDALE%'
+                    )
+                    OR
+                    (
+                        (ISNULL(CU.AllowMail, 1) = 0)
+                        AND (
+                            (
+                                SELECT UseAllowMail
+                                FROM D_PROPERTY WITH
+                                    (NOLOCK)
+                                WHERE PropertyCode = CU.PropertyCode
+                            ) = 1
+                            )
+	                    AND DB_NAME() NOT LIKE '%FIRMDALE%'
+                    )
+                    OR
+                    (
+                        (ISNULL(CU.AllowMail, 1) = 0)
+                        AND (
+                            (
+                                SELECT UseAllowMail
+                                FROM D_PROPERTY WITH
+                                    (NOLOCK)
+                                WHERE PropertyCode = CU.PropertyCode
+                            ) = 1
+                            )
+	                    AND CU.InsertDate >= '{0}'
+	                    AND DB_NAME() LIKE '%FIRMDALE%'
+                    )
+                    );
+                    SET @RowCount = @RowCount + @@ROWCOUNT;
+                    COMMIT TRAN UNSUB;
+                    SET @ProcessMessage
+                    = 'Time Elapsed: ' + CAST(DATEDIFF(MILLISECOND, @ProcessStartTime, SYSDATETIME()) / 1000.00 AS VARCHAR) + 's';
+                    RAISERROR('    %i rows affected', 0, 1, @RowCount) WITH NOWAIT;
+                    RAISERROR('    %s', 0, 1, @ProcessMessage) WITH NOWAIT;
+
+                    SET NOCOUNT OFF;
+
+                    skip_emailverify:
+                    IF EXISTS
+                    (
+                    SELECT 1
+                    FROM eInsightCRM_ConfigurationSettings WITH
+                    (NOLOCK)
+                    WHERE ConfigurationSettingName = 'UseEmailVerifyBounceRules'
+                    AND ConfigurationSettingValue = 'Y'
+                    )
+                    BEGIN
+                    PRINT 'Skipping legacy emailverify as new rules have been enabled';
+                    END;
+                    ELSE
+                    BEGIN
+                    PRINT 'Running legacy emailverify';
+                    END;";
+
+        public static readonly string SQL_EmailVerifyOnD_CUSTOMER_EMAIL_Rosewood =
+                @"IF EXISTS
+                    (
+                        SELECT 1
+                        FROM eInsightCRM_ConfigurationSettings WITH
+                            (NOLOCK)
+                        WHERE ConfigurationSettingName = 'UseEmailVerifyBounceRules'
+                              AND ConfigurationSettingValue = 'Y'
+                    )
+                        GOTO skip_emailverify;
+
+                    DECLARE @ProcessStartTime DATETIME2;
+                    DECLARE @ProcessMessage VARCHAR(MAX);
+                    DECLARE @RowCount INT = 0;
+
+                    RAISERROR('check for new statuses', 0, 1) WITH NOWAIT;
+                    SET @ProcessStartTime = SYSDATETIME();
+                    DECLARE @CountEmailStatus INT;
+                    SET @CountEmailStatus =
+                    (
+                        SELECT COUNT(1)
+                        FROM dbo.D_CUSTOMER_EMAIL WITH
+                            (NOLOCK)
+                        WHERE EmailStatus = 0
+                    );
+
+                    BEGIN TRAN EMAILSTATUSUPDATE;
+
+                    IF @CountEmailStatus > 0
+                    BEGIN
+                        UPDATE C
+                        SET C.EmailStatus = CASE --NULL/Blank Emails 
+                                                WHEN LTRIM(RTRIM(C.Email)) = ''
+                                                     OR C.Email IS NULL THEN
+                                                    2
+                                                --Custom query to flag certain emails as status 7 added 8/23/2010 AK
+                                                WHEN C.Email LIKE '%@expedia.com' THEN
+                                                    7
+                                                --Bad Emails
+                                                WHEN dbo.IsValidEmail(C.Email) = 0 THEN
+                                                    4
+							                    --Has Consent?
+                                                WHEN dbo.fn_HasConsent(C.Email) = 0 AND C.EmailType NOT IN('UDFC30') THEN
+                                                    8
+                                                --Good Emails
+                                                ELSE
+                                                    1
+                                            END,
+                            C.EmailDomainHash = CHECKSUM(LTRIM(RTRIM(SUBSTRING(C.Email, CHARINDEX('@', C.Email) + (1), LEN(C.Email)))))
+                        FROM D_CUSTOMER_EMAIL AS C
+                        WHERE EmailStatus = 0;
+
+                        SET @RowCount = @@ROWCOUNT;
+                    END;
+
+                    COMMIT TRAN EMAILSTATUSUPDATE;
+                    SET @ProcessMessage
+                        = 'Time Elapsed: ' + CAST(DATEDIFF(MILLISECOND, @ProcessStartTime, SYSDATETIME()) / 1000.00 AS VARCHAR) + 's';
+                    RAISERROR('    %i rows affected', 0, 1, @RowCount) WITH NOWAIT;
+                    RAISERROR('    %s', 0, 1, @ProcessMessage) WITH NOWAIT;
+                    RAISERROR('Update to custom exclusion status for email addresses in eInsight_SupressEmails table', 0, 1) WITH NOWAIT;
+                    SET @ProcessStartTime = SYSDATETIME();
+                    SET @RowCount = 0;
+                    BEGIN TRAN CUSTOM;
+
+                    UPDATE CS
+                    SET CS.EmailStatus = 7
+                    FROM dbo.D_CUSTOMER_EMAIL CS
+                        INNER JOIN dbo.eInsight_SuppressEmails S WITH
+                        (NOLOCK)
+                            ON CS.Email = S.Email
+                    WHERE CS.EmailStatus <> 7;
+
+                    SET @RowCount = @@ROWCOUNT;
+
+                    UPDATE CS
+                    SET CS.EmailStatus = 7
+                    FROM dbo.D_CUSTOMER_EMAIL CS
+                        INNER JOIN dbo.email AS e WITH
+                        (NOLOCK)
+                            ON CS.Email = e.email_address
+                        INNER JOIN dbo.eInsight_DomainExclusion AS d WITH
+                        (NOLOCK)
+                            ON d.ExcludeDomain = e.domain_name
+                    WHERE CS.EmailStatus <> 7;
+
+                    SET @RowCount = @@ROWCOUNT;
+
+                    COMMIT TRAN CUSTOM;
+                    SET @ProcessMessage
+                        = 'Time Elapsed: ' + CAST(DATEDIFF(MILLISECOND, @ProcessStartTime, SYSDATETIME()) / 1000.00 AS VARCHAR) + 's';
+                    RAISERROR('    %i rows affected', 0, 1, @RowCount) WITH NOWAIT;
+                    RAISERROR('    %s', 0, 1, @ProcessMessage) WITH NOWAIT;
+                    RAISERROR('check for bounces(1/3)', 0, 1) WITH NOWAIT;
+                    SET @ProcessStartTime = SYSDATETIME();
+                    SET @RowCount = 0;
+                    BEGIN TRAN BOUNCES;
+
+                    UPDATE CB
+                    SET CB.EmailStatus = 6
+                    FROM D_CUSTOMER_EMAIL AS CB
+                    WHERE CB.EmailStatus IN ( 0, 1, 8 )
+                          AND EXISTS
+                    (
+                        SELECT 1
+                        FROM ECONTACT_CONTACT_BOUNCE_REPORTS AS B WITH
+                            (NOLOCK)
+                        WHERE B.BounceReason NOT IN ( 'Auto Reply', 'General Soft Bounce', 'Mailbox FULL', 'DNS Failure',
+                                                      'Transient Failure', 'Spam Detected', 'General Mail Block'
+                                                    )
+                              AND B.BounceDetail NOT LIKE '%postmaster.info.aol.com/errors/554rlyb1%'
+                              AND B.BounceDetail NOT LIKE '%postmaster.yahoo.com/421-ts03%'
+                              AND B.BounceDetail NOT LIKE '%smtp;554%Comcast block for spam. Please see http://postmaster.comcast.net/smtp-error-codes.php#BL000000%'
+                              AND B.BounceDetail NOT LIKE '%smtp;421 mtain-mb03.r1000.mx.aol.com Service unavailable - try again later%'
+                              AND B.BounceDetail NOT LIKE '%smtp;421%.mx.aol.com Service unavailable - try again later%'
+                              AND B.EmailAddress = CB.Email
+                    );
+
+                    SET @RowCount = @@ROWCOUNT;
+                    COMMIT TRAN BOUNCES;
+                    SET @ProcessMessage
+                        = 'Time Elapsed: ' + CAST(DATEDIFF(MILLISECOND, @ProcessStartTime, SYSDATETIME()) / 1000.00 AS VARCHAR) + 's';
+                    RAISERROR('    %i rows affected', 0, 1, @RowCount) WITH NOWAIT;
+                    RAISERROR('    %s', 0, 1, @ProcessMessage) WITH NOWAIT;
+                    RAISERROR('check for bounces(2/3)', 0, 1) WITH NOWAIT;
+                    SET @ProcessStartTime = SYSDATETIME();
+                    SET @RowCount = 0;
+                    BEGIN TRAN BOUNCES1;
+
+                    UPDATE CB
+                    SET CB.EmailStatus = 6
+                    FROM D_CUSTOMER_EMAIL AS CB
+                    WHERE CB.EmailStatus IN ( 1, 8 )
+                          AND EXISTS
+                    (
+                        SELECT 1
+                        FROM [dbo].[SM_REPORT_BOUNCED] AL WITH
+                            (NOLOCK)
+                        WHERE AL.Category IN ( '2', '8', '9' )
+                              AND AL.Email = CB.Email
+                    );
+
+                    SET @RowCount = @@ROWCOUNT;
+                    COMMIT TRAN BOUNCES1;
+                    SET @ProcessMessage
+                        = 'Time Elapsed: ' + CAST(DATEDIFF(MILLISECOND, @ProcessStartTime, SYSDATETIME()) / 1000.00 AS VARCHAR) + 's';
+                    RAISERROR('    %i rows affected', 0, 1, @RowCount) WITH NOWAIT;
+                    RAISERROR('    %s', 0, 1, @ProcessMessage) WITH NOWAIT;
+                    RAISERROR('check for bounces(3/3)', 0, 1) WITH NOWAIT;
+                    SET @ProcessStartTime = SYSDATETIME();
+                    SET @RowCount = 0;
+                    BEGIN TRAN BOUNCES2;
+
+                    UPDATE CB
+                    SET CB.EmailStatus = 6
+                    FROM D_CUSTOMER_EMAIL AS CB
+                    WHERE CB.EmailStatus IN ( 1, 8 )
+                          AND EXISTS
+                    (
+                        SELECT 1
+                        FROM dbo.SM_REPORT_BOUNCED WITH
+                            (NOLOCK)
+                        WHERE MailServiceSource = 'Maropost'
+                              AND BounceType = 'hard_bounce'
+                              AND Email = CB.Email
+                    );
+
+                    SET @RowCount = @@ROWCOUNT;
+                    COMMIT TRAN BOUNCES2;
+                    SET @ProcessMessage
+                        = 'Time Elapsed: ' + CAST(DATEDIFF(MILLISECOND, @ProcessStartTime, SYSDATETIME()) / 1000.00 AS VARCHAR) + 's';
+                    RAISERROR('    %i rows affected', 0, 1, @RowCount) WITH NOWAIT;
+                    RAISERROR('    %s', 0, 1, @ProcessMessage) WITH NOWAIT;
+
+                    RAISERROR('Starting SUB', 0, 1) WITH NOWAIT;
+                    SET @ProcessStartTime = SYSDATETIME();
+                    SET @RowCount = 0;
+                    BEGIN TRAN SUB;
+
+                    UPDATE CU
+                    SET CU.EmailStatus = 1
+                    FROM D_CUSTOMER_EMAIL AS CU
+                    INNER JOIN D_CUSTOMER AS D WITH
+                        (NOLOCK)
+                            ON CU.CustomerID = D.CustomerID
+                    WHERE CU.EmailStatus IN ( 5 )
+                          AND NOT EXISTS
+                    (
+                        SELECT 1
+                        FROM ECONTACT_CUSTOMER_UNSUBSCRIBED AS U WITH
+                            (NOLOCK)
+                        WHERE U.EmailAddress = CU.Email
+                    )
+                          AND
+                          (
+                              (
+                                  (ISNULL(D.AllowEMail, 1) = 1)
+                                  AND (
+                                      (
+                                          SELECT UseAllowEmail
+                                          FROM D_PROPERTY WITH
+                                              (NOLOCK)
+                                          WHERE PropertyCode = D.PropertyCode
+                                      ) = 1
+                                      )
+                              )
+                              OR
+                              (
+                                  (ISNULL(D.AllowMail, 1) = 1)
+                                  AND (
+                                      (
+                                          SELECT UseAllowMail
+                                          FROM D_PROPERTY WITH
+                                              (NOLOCK)
+                                          WHERE PropertyCode = D.PropertyCode
+                                      ) = 1
+                                      )
+                              )
+                          );
+                    SET @RowCount = @RowCount + @@ROWCOUNT;
+                    COMMIT TRAN SUB;
+                    SET @ProcessMessage
+                        = 'Time Elapsed: ' + CAST(DATEDIFF(MILLISECOND, @ProcessStartTime, SYSDATETIME()) / 1000.00 AS VARCHAR) + 's';
+                    RAISERROR('    %i rows affected', 0, 1, @RowCount) WITH NOWAIT;
+                    RAISERROR('    %s', 0, 1, @ProcessMessage) WITH NOWAIT;
+
+                    RAISERROR('check for unsubscribes', 0, 1) WITH NOWAIT;
+                    SET @ProcessStartTime = SYSDATETIME();
+                    SET @RowCount = 0;
+                    BEGIN TRAN UNSUB;
+
+                    UPDATE CU
+                    SET CU.EmailStatus = 5
+                    FROM D_CUSTOMER_EMAIL AS CU
+                        INNER JOIN D_CUSTOMER AS D WITH
+                        (NOLOCK)
+                            ON CU.CustomerID = D.CustomerID
+                    WHERE CU.EmailStatus IN ( 1, 8 )
+                          AND
+                          (
+                              EXISTS
+                    (
+                        SELECT 1
+                        FROM ECONTACT_CUSTOMER_UNSUBSCRIBED AS U WITH
+                            (NOLOCK)
+                        WHERE U.EmailAddress = CU.Email
+                    )
+                              OR
+                              (
+                                  (ISNULL(D.AllowEMail, 1) = 0)
+                                  AND (
+                                      (
+                                          SELECT UseAllowEmail
+                                          FROM D_PROPERTY WITH
+                                              (NOLOCK)
+                                          WHERE PropertyCode = D.PropertyCode
+                                      ) = 1
+                                      )
+                              )
+		                      OR
+                              (
+                                  (ISNULL(D.AllowMail, 1) = 0)
+                                  AND (
+                                      (
+                                          SELECT UseAllowMail
+                                          FROM D_PROPERTY WITH
+                                              (NOLOCK)
+                                          WHERE PropertyCode = D.PropertyCode
+                                      ) = 1
+                                      )
+                              )
+                          );
+
+
+                    SET @RowCount = @@ROWCOUNT;
+                    COMMIT TRAN UNSUB;
+                    SET @ProcessMessage
+                        = 'Time Elapsed: ' + CAST(DATEDIFF(MILLISECOND, @ProcessStartTime, SYSDATETIME()) / 1000.00 AS VARCHAR) + 's';
+                    RAISERROR('    %i rows affected', 0, 1, @RowCount) WITH NOWAIT;
+                    RAISERROR('    %s', 0, 1, @ProcessMessage) WITH NOWAIT;
+
+                    skip_emailverify:
+                    IF EXISTS
+                    (
+                        SELECT 1
+                        FROM eInsightCRM_ConfigurationSettings WITH
+                            (NOLOCK)
+                        WHERE ConfigurationSettingName = 'UseEmailVerifyBounceRules'
+                              AND ConfigurationSettingValue = 'Y'
+                    )
+                    BEGIN
+                        PRINT 'Skipping legacy emailverify as new rules have been enabled';
+                    END;
+                    ELSE
+                    BEGIN
+                        PRINT 'Running legacy emailverify';
+                    END;";
+
+        public static readonly string SQL_GetDataFromD_CustomerToMoveEmails =
+                @"SELECT DISTINCT d.CustomerID ,
+                       'Email' AS EmailType ,
+                       ISNULL(d.Email, '') AS Email ,
+                       d.EmailStatus ,
+                       NEWID() AS PK_ContactMethod ,
+                       em.id AS email_id
+                FROM   dbo.D_CUSTOMER AS d WITH ( NOLOCK )
+                       INNER JOIN dbo.ETL_TEMP_D_Customer_For_Email AS e WITH ( NOLOCK ) ON d.CustomerID = e.CustomerID
+                       LEFT JOIN email AS em WITH ( NOLOCK ) ON ISNULL(em.email_address, '') = ISNULL(d.Email ,'')
+                WHERE  ISNULL(d.Email, '') LIKE '%@%'";
+
+        public static readonly string SQL_FillUpMissingDataUnderD_Customer_Email =
+                @"IF OBJECT_ID('Tempdb..#missing_emails') IS NOT NULL
+                    DROP TABLE #missing_emails;
+                SELECT DISTINCT d.CustomerID ,
+                                d.Email ,
+                                d.EmailStatus ,
+                                d.InsertDate
+                INTO   #missing_emails
+                FROM   D_CUSTOMER AS d WITH ( NOLOCK )
+                WHERE  d.Email LIKE '%@%'
+                       AND d.SourceID = 1
+                       AND NOT EXISTS (   SELECT 1
+                                          FROM   D_CUSTOMER_EMAIL WITH ( NOLOCK )
+                                          WHERE  d.CustomerID = CustomerID
+                                                 AND SourceStayID IS NULL )
+                       AND DB_NAME() NOT LIKE '%Rosewood%';
+
+                INSERT INTO dbo.D_CUSTOMER_EMAIL ( CustomerID ,
+                                                   SourceStayID ,
+                                                   EmailType ,
+                                                   Email ,
+                                                   EmailStatus ,
+                                                   InsertDate ,
+                                                   PK_ContactMethod ,
+                                                   email_id )
+                            SELECT DISTINCT d.CustomerID ,
+                                            NULL AS SourceStayID ,
+                                            'Email' AS EmailType ,
+                                            ISNULL(d.Email, '') AS Email ,
+                                            d.EmailStatus ,
+                                            d.InsertDate ,
+                                            NEWID() AS PK_ContactMethod ,
+                                            em.id AS email_id
+                            FROM   #missing_emails d
+                                   LEFT JOIN dbo.email AS em WITH ( NOLOCK ) ON d.Email = em.email_address
+                            WHERE  d.EmailStatus NOT IN ( 2, 4 );
+
+
+                IF OBJECT_ID('Tempdb..#missing_stay_emails') IS NOT NULL
+                    DROP TABLE #missing_stay_emails;
+                SELECT DISTINCT s.CustomerID ,
+                                s.SourceStayID ,
+                                d.Email ,
+                                d.EmailStatus ,
+                                d.InsertDate ,
+                                d.PK_Profiles
+                INTO   #missing_stay_emails
+                FROM   D_CUSTOMER AS d WITH ( NOLOCK )
+                       INNER JOIN dbo.D_CUSTOMER_STAY AS s WITH ( NOLOCK ) ON d.CustomerID = s.CustomerID
+                WHERE  d.Email LIKE '%@%'
+                       AND d.SourceID = 1
+                       AND NOT EXISTS (   SELECT 1
+                                          FROM   D_CUSTOMER_EMAIL WITH ( NOLOCK )
+                                          WHERE  s.CustomerID = CustomerID
+                                                 AND s.SourceStayID = SourceStayID
+                                                 AND SourceStayID IS NOT NULL )
+                       AND DB_NAME() NOT LIKE '%Rosewood%';
+
+                INSERT INTO dbo.D_CUSTOMER_EMAIL ( CustomerID ,
+                                                   SourceStayID ,
+                                                   EmailType ,
+                                                   Email ,
+                                                   EmailStatus ,
+                                                   InsertDate ,
+                                                   PK_ContactMethod ,
+                                                   email_id )
+                            SELECT DISTINCT d.CustomerID ,
+                                            d.SourceStayID ,
+                                            'UDFC30' AS EmailType ,
+                                            ISNULL(d.Email, '') AS Email ,
+                                            d.EmailStatus ,
+                                            d.InsertDate ,
+                                            NEWID() AS PK_ContactMethod ,
+                                            em.id AS email_id
+                            FROM   #missing_stay_emails d
+                                   LEFT JOIN dbo.email AS em WITH ( NOLOCK ) ON d.Email = em.email_address
+                            WHERE  d.EmailStatus NOT IN ( 2, 4 )
+                                   AND NOT EXISTS (   SELECT 1
+                                                      FROM   dbo.D_CUSTOMER AS c WITH ( NOLOCK )
+                                                             INNER JOIN dbo.PMS_CONTACTMETHOD AS pcm WITH ( NOLOCK ) ON c.PK_Profiles = pcm.FK_Profiles
+                                                                                                                        AND c.Email = SUBSTRING(
+                                                                                                                                          LTRIM(
+                                                                                                                                              RTRIM(
+                                                                                                                                                  pcm.CMData)) ,
+                                                                                                                                          1 ,
+                                                                                                                                          70)
+                                                      WHERE  pcm.CMType = 'IP'
+                                                             AND pcm.CMCategory = 'Email'
+                                                             AND pcm.RecordStatus = 'Inactive'
+                                                             AND NOT EXISTS (   SELECT 1
+                                                                                FROM   dbo.PMS_CONTACTMETHOD WITH ( NOLOCK )
+                                                                                WHERE  FK_Profiles = pcm.FK_Profiles
+                                                                                       AND RecordStatus = 'Active'
+                                                                                       AND CMType = 'IP'
+                                                                                       AND CMCategory = 'Email'
+                                                                                       AND SUBSTRING(
+                                                                                               LTRIM(
+                                                                                                   RTRIM(
+                                                                                                       CMData)) ,
+                                                                                               1 ,
+                                                                                               70) = c.Email )
+                                                             AND c.CustomerID = d.CustomerID );";
+
+        public static readonly string SQL_FixEmailsDataUnderD_Customer_Email =
+                @"UPDATE e
+                        SET e.Email = d.Email,
+                            e.EmailStatus = d.EmailStatus,
+                            e.EmailDomainHash = d.EmailDomainHash
+                        FROM dbo.D_CUSTOMER_EMAIL AS e
+                            INNER JOIN dbo.D_CUSTOMER AS d WITH (NOLOCK)
+                                ON e.CustomerID = d.CustomerID
+                        WHERE (
+                                  ISNULL(e.Email, '') <> ISNULL(d.Email, '')
+                                  OR e.EmailStatus <> d.EmailStatus
+                              )
+                              AND e.EmailType IN ( 'Email', 'UDFC30' )
+                              AND DB_NAME() NOT LIKE '%Rosewood%';";
+
+        public static readonly string SQL_FixEmail_IDUnderD_Customer_Email =
+                @"IF DB_NAME() NOT LIKE '%Rosewood%'
+                       AND DB_NAME() NOT LIKE '%OmniHotels%'
+                    BEGIN
+
+                        UPDATE e
+                        SET e.email_id = em.id
+                        FROM dbo.D_CUSTOMER_EMAIL AS e
+                            INNER JOIN dbo.email AS em WITH (NOLOCK)
+                                ON ISNULL(e.Email, '') = ISNULL(em.email_address, '')
+                        WHERE ISNULL(e.Email, '') LIKE '%@%'
+                              AND e.email_id IS NULL;
+
+                        UPDATE e
+                        SET e.email_id = em2.id
+                        FROM dbo.D_CUSTOMER_EMAIL AS e
+                            INNER JOIN dbo.email AS em1 WITH (NOLOCK)
+                                ON ISNULL(e.Email, '') <> ISNULL(em1.email_address, '')
+                                   AND e.email_id = em1.id
+                            INNER JOIN dbo.email AS em2 WITH (NOLOCK)
+                                ON ISNULL(e.Email, '') = ISNULL(em2.email_address, '')
+                                   AND e.email_id <> em2.id
+                        WHERE ISNULL(e.Email, '') LIKE '%@%';
+
+                        UPDATE e
+                        SET e.email_id = NULL
+                        FROM dbo.D_CUSTOMER_EMAIL AS e
+                        WHERE (
+                                  ISNULL(e.Email, '') = ''
+                                  OR ISNULL(e.Email, '') NOT LIKE '%@%'
+                              )
+                              AND e.email_id IS NOT NULL;
+
+                    END;
+
+                    IF DB_NAME() LIKE '%OmniHotels%'
+                    BEGIN
+
+                        BEGIN TRAN Trans_01;
+
+                        UPDATE e
+                        SET e.email_id = em.id
+                        FROM dbo.D_CUSTOMER_EMAIL AS e
+                            INNER JOIN dbo.email AS em WITH (NOLOCK)
+                                ON ISNULL(e.Email, '') = ISNULL(em.email_address, '')
+                        WHERE ISNULL(e.Email, '') LIKE '%@%'
+                              AND e.email_id IS NULL;
+
+                        COMMIT TRAN Trans_01;
+
+                        BEGIN TRAN Trans_02;
+
+                        -- Determin the last @@DBTS / ROWVERSION since last time ran 
+                        DECLARE @Now DATETIME = GETDATE();
+                        DECLARE @D_Customer_Email_Fix_Email_ID_RowVersion_SettingKey VARCHAR(50)
+                            = 'D_Customer_Email_Fix_Email_ID_RowVersion';
+                        DECLARE @Current_DBTS ROWVERSION = @@DBTS;
+                        DECLARE @D_Customer_Email_Fix_Email_ID_RowVersion ROWVERSION;
+                        --Get the last rowversion from previours run 
+                        SELECT @D_Customer_Email_Fix_Email_ID_RowVersion = CONVERT(VARBINARY(8), [ConfigurationSettingValue], 1)
+                        FROM [dbo].[eInsightCRM_ConfigurationSettings] eiccs WITH (NOLOCK)
+                        WHERE eiccs.ConfigurationSettingName = @D_Customer_Email_Fix_Email_ID_RowVersion_SettingKey;
+                        IF (@D_Customer_Email_Fix_Email_ID_RowVersion IS NULL)
+                        BEGIN
+                            SELECT @D_Customer_Email_Fix_Email_ID_RowVersion = 0;
+                        END;
+
+                        --Only get back the records that has been changed in D_Customer_Email table
+
+                        UPDATE e
+                        SET e.email_id = em2.id
+                        FROM dbo.D_CUSTOMER_EMAIL AS e
+                            INNER JOIN dbo.email AS em1 WITH (NOLOCK)
+                                ON ISNULL(e.Email, '') <> ISNULL(em1.email_address, '')
+                                   AND e.email_id = em1.id
+                            INNER JOIN dbo.email AS em2 WITH (NOLOCK)
+                                ON ISNULL(e.Email, '') = ISNULL(em2.email_address, '')
+                                   AND e.email_id <> em2.id
+                        WHERE ISNULL(e.Email, '') LIKE '%@%'
+                              AND e.RV > @D_Customer_Email_Fix_Email_ID_RowVersion
+                              AND e.RV <= @Current_DBTS;
+
+                        IF EXISTS
+                        (
+                            SELECT 1
+                            FROM eInsightCRM_ConfigurationSettings
+                            WHERE [ConfigurationSettingName] = @D_Customer_Email_Fix_Email_ID_RowVersion_SettingKey
+                        )
+                        BEGIN
+                            UPDATE [eInsightCRM_ConfigurationSettings]
+                            SET [ConfigurationSettingValue] = CONVERT(VARCHAR(50), CONVERT(VARBINARY(8), @Current_DBTS), 1)
+                            WHERE [ConfigurationSettingName] = @D_Customer_Email_Fix_Email_ID_RowVersion_SettingKey;
+                        END;
+                        ELSE
+                        BEGIN
+                            INSERT INTO [eInsightCRM_ConfigurationSettings]
+                            (
+                                [ConfigurationSettingName],
+                                [ConfigurationSettingValue],
+                                [Created],
+                                [LastUpdated]
+                            )
+                            VALUES
+                            (@D_Customer_Email_Fix_Email_ID_RowVersion_SettingKey,
+                             CONVERT(VARCHAR(50), CONVERT(VARBINARY(8), @Current_DBTS), 1), GETDATE(), GETDATE());
+                        END;
+                        COMMIT TRAN Trans_02;
+
+                        BEGIN TRAN Trans_03;
+
+                        UPDATE e
+                        SET e.email_id = NULL
+                        FROM dbo.D_CUSTOMER_EMAIL AS e
+                        WHERE (
+                                  ISNULL(e.Email, '') = ''
+                                  OR ISNULL(e.Email, '') NOT LIKE '%@%'
+                              )
+                              AND e.email_id IS NOT NULL;
+
+                        COMMIT TRAN Trans_03;
+
+                    END;";
+
+        public static readonly string SQL_UpdateUnifocusScorePerCustomer =
+                @"UPDATE  d
+                    SET     d.UNIFOCUS_SCORE =  ROUND(ISNULL(zzz.AverageUNIFOCUSScore, 0), 0)
+                    FROM    dbo.D_CUSTOMER AS d
+                            INNER JOIN ( SELECT b.GuestNumber ,
+                                                zz.AverageUNIFOCUSScore
+                                         FROM   dbo.UNIFOCUS_SurveyResultsHeader AS b WITH ( NOLOCK )
+                                                INNER JOIN ( SELECT z.FK_SurveyResultsHeader ,
+                                                                    AVG(z.GroupValue) AS AverageUNIFOCUSScore
+                                                             FROM   ( SELECT    x.*
+                                                                      FROM      ( SELECT
+                                                                                  a.* ,
+                                                                                  ROW_NUMBER() OVER ( PARTITION BY a.GuestNumber ORDER BY a.SurveyTakenDate DESC ) AS rn
+                                                                                  FROM
+                                                                                  dbo.UNIFOCUS_SurveyResultsHeader
+                                                                                  AS a WITH ( NOLOCK )
+                                                                                ) x
+                                                                      WHERE     x.rn = 1
+                                                                    ) y
+                                                                    INNER JOIN dbo.UNIFOCUS_QuestionGroupValues
+                                                                    AS z WITH ( NOLOCK ) ON y.PK_SurveyResultsHeader = z.FK_SurveyResultsHeader
+												                    WHERE z.GroupID IN(1, 56)
+                                                             GROUP BY z.FK_SurveyResultsHeader
+                                                           ) AS zz ON b.PK_SurveyResultsHeader = zz.FK_SurveyResultsHeader
+                                       ) zzz ON d.CustomerID = zzz.GuestNumber";
+
+        public static readonly string SQL_InsertEndTimeIntoLogTable =
+                @"UPDATE  ETL_PACKAGE_LOG 
+                    SET EndTime = GETDATE(), RecordCount = ?
+                    WHERE Id = ? AND Component = 'D_CUSTOMER'
+                    ";
+
+        public static readonly string SQL_GetDataFromETL_TEMP_PROFILES_D_CUSTOMER_Insert =
+                @"SELECT DISTINCT PK_Profiles FROM dbo.ETL_TEMP_PROFILES_D_CUSTOMER_Insert With(Nolock)";
+
+        public static readonly string SQL_GetDataFromPMS_Profile_Mapping =
+                @"select DISTINCT pm.FK_Profiles, pm.CustomerID, pm.GlobalCustomerID from PMS_Profile_Mapping as pm with(nolock) 
+                    inner join dbo.ETL_TEMP_Profiles_D_Customer_Update as e with(nolock) 
+                    on pm.FK_Profiles = e.PK_Profiles";
+
+        public static readonly string SQL_GetDataFromD_Property =
+            @"SELECT CendynPropertyId, PropertyCode FROM dbo.D_PROPERTY  with(nolock) 
+                    WHERE CendynPropertyID IN(SELECT CendynPropertyID FROM dbo.D_PROPERTY  with(nolock) 
+                    GROUP BY CendynPropertyID
+                    HAVING COUNT(*) = 1 AND ISNULL(CendynPropertyID, '0') <> '0' AND CendynPropertyID <> '')
+                    UNION 
+                    select TOP 1 CendynPropertyID, PropertyCode from D_Property with(nolock)
+                    WHERE CendynPropertyID IN(SELECT CendynPropertyID FROM dbo.D_PROPERTY  with(nolock) 
+                    GROUP BY CendynPropertyID
+                    HAVING COUNT(*) > 1 AND ISNULL(CendynPropertyID, '0') <> '0' AND CendynPropertyID <> '')";
+
+        public static readonly string SQL_GetDataFromD_customerAndETL_TEMP_Profiles_D_Customer =
+                @"select DISTINCT d.PK_Profiles, d.CustomerID from dbo.d_customer as d with(nolock) 
+                    inner join ETL_TEMP_Profiles_D_Customer as e with(nolock) 
+                    on d.PK_Profiles = e.PK_Profiles";
+
+        public static readonly string SQL_GetDataFromPMS_PROFILE_MAPPING =
+                @"SELECT pm.CustomerID ,
+                           pm.GlobalCustomerID ,
+                           pm.FK_Profiles
+                    FROM   PMS_PROFILE_MAPPING AS pm WITH ( NOLOCK )
+                           INNER JOIN dbo.ETL_TEMP_PROFILES_D_CUSTOMER AS p WITH ( NOLOCK ) ON pm.FK_Profiles = p.PK_Profiles;";
 
         public static string SQL_UpdateRateTypeDictionary = 
             @"INSERT INTO dbo.L_DATA_DICTIONARY
@@ -525,7 +1880,7 @@ WHERE FieldName = 'Ratetype'
 
         public static void D_CustomerEmailMaintenance()
         {
-            List<Dictionary<string, string>> SQL_GetContactMethodInactiveRecordsList = SQLHelper.GetDbValues(GetCRMConnectionString(), "SQL_GetContactMethodInactiveRecords", SQL_GetContactMethodInactiveRecords, null);
+            List<Dictionary<string, string>> SQL_GetContactMethodInactiveRecordsList = SQLHelper.GetDbValues(GetCRMConnectionString(), "SQL_GetContactMethodInactiveRecords", string.Format(SQL_GetContactMethodInactiveRecords, CompanySettings.StartDate), null);
             for (int i = 0; i < SQL_GetContactMethodInactiveRecordsList.Count; i++)
             {
                 Dictionary<string, string> dictionary = SQL_GetContactMethodInactiveRecordsList[i];
@@ -584,6 +1939,46 @@ WHERE FieldName = 'Ratetype'
         public static void UpdateVIPLevel()
         {
             SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_UpdateVIPLevel", SQL_UpdateVIPLevel, null);
+        }
+
+        public static void EmailVerifyWithBounceRules()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_EmailVerifyWithBounceRules", SQL_EmailVerifyWithBounceRules, null);
+        }
+
+        public static void EmailVerifyOnD_Customer()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_EmailVerifyOnD_Customer", string.Format(SQL_EmailVerifyOnD_Customer, CompanySettings.StartDate), null);
+        }
+
+        public static void EmailVerifyOnD_CUSTOMER_EMAIL_Rosewood()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_EmailVerifyOnD_CUSTOMER_EMAIL_Rosewood", SQL_EmailVerifyOnD_CUSTOMER_EMAIL_Rosewood, null);
+        }
+
+        public static void FillUpMissingDataUnderD_Customer_Email()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_FillUpMissingDataUnderD_Customer_Email", SQL_FillUpMissingDataUnderD_Customer_Email, null);
+        }
+
+        public static void FixEmailsDataUnderD_Customer_Email()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_FixEmailsDataUnderD_Customer_Email", SQL_FixEmailsDataUnderD_Customer_Email, null);
+        }
+
+        public static void FixEmail_IDUnderD_Customer_Email()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_FixEmail_IDUnderD_Customer_Email", SQL_FixEmail_IDUnderD_Customer_Email, null);
+        }
+
+        public static void UpdateUnifocusScorePerCustomer()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_UpdateUnifocusScorePerCustomer", SQL_UpdateUnifocusScorePerCustomer, null);
+        }
+
+        public static void InsertEndTimeIntoLogTable()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_InsertEndTimeIntoLogTable", SQL_InsertEndTimeIntoLogTable, null);
         }
 
         public static void DeleteOrphanRecords()

@@ -11,5 +11,6 @@ namespace ETLBoxDemo.src.Modules.Customer
         public string Email { get; set; }
         public string PK_ContactMethod { get; set; }
         public string CustomerID { get; set; }
+        public string email_id { get; set; }
     }
 }

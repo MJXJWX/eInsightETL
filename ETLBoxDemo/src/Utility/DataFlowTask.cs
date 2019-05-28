@@ -2,6 +2,7 @@
 using ALE.ETLBox.ConnectionManager;
 using ALE.ETLBox.ControlFlow;
 using ALE.ETLBox.DataFlow;
+using ETLBoxDemo.src.Modules.Customer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,7 +41,8 @@ namespace ETLBoxDemo.src.Utility
             }
 
             //Execute Task Flow task
-            DBSource<T> dBSource = new DBSource<T>() {
+            DBSource<T> dBSource = new DBSource<T>()
+            {
                 ConnString = sConnString,
                 Sql = sql
             };
@@ -258,6 +260,124 @@ namespace ETLBoxDemo.src.Utility
             ControlFlow.CurrentDbConnection = new SqlConnectionManager(new ConnectionString(dConnString));
             dBDestination.Wait();
         }
+
+        //public void runTask1<T1,T2,T3>(string sConnString, string dConnString, string dTableName, string sql, string sql1, bool isUpdate = false, bool isInsert = false, List<string> primaryKey = null, List<string> properties = null)
+        //{
+        //    //Type of Data Flow Task
+        //    ActionType actionType = ActionType.Upsert;
+        //    if (isInsert && isUpdate)
+        //    {
+        //        actionType = ActionType.Upsert;
+        //    }
+        //    else if (isInsert)
+        //    {
+        //        actionType = ActionType.Insert;
+        //    }
+        //    else if (isUpdate)
+        //    {
+        //        //actionType = ActionType.Update;
+        //    }
+        //    else
+        //    {
+        //        //return;
+        //    }
+
+        //    //Properties of transfor
+        //    var columns = new List<TableColumn>();
+        //    if (primaryKey != null && primaryKey.Count > 0)
+        //    {
+        //        primaryKey.ForEach(p => columns.Add(new TableColumn(p, "string", allowNulls: false, isPrimaryKey: true, isIdentity: true)));
+        //    }
+        //    if (properties != null && properties.Count > 0)
+        //    {
+        //        properties.ForEach(p =>
+        //        {
+        //            if (!primaryKey.Contains(p))
+        //                columns.Add(new TableColumn(p, "string", allowNulls: false, isPrimaryKey: false, isIdentity: true));
+        //        });
+        //    }
+        //    if (actionType == ActionType.Upsert && (primaryKey == null || primaryKey.Count == 0))
+        //    {
+        //        actionType = ActionType.Insert;
+        //    }
+
+        //    //Execute Task Flow task
+        //    TableDefinition OrderDataTableDef1 = new TableDefinition(dTableName, columns);
+
+        //    TransformationTestClass testClass = new TransformationTestClass();
+        //    DBSource<D_Customer> source = new DBSource<D_Customer>(OrderDataTableDef1) { Sql = sql };
+        //    DBSource<D_Customer_03092017> lookupSource = new DBSource<D_Customer_03092017>(OrderDataTableDef1) { Sql = sql1 };
+        //    Lookup<D_Customer, D_Customer, D_Customer_03092017> lookup = new Lookup<D_Customer, D_Customer, D_Customer_03092017>(
+        //        testClass.TestTransformationFunc, lookupSource, testClass.LookupData
+        //    );
+        //    DBDestination<D_Customer> dest = new DBDestination<D_Customer>(dTableName, actionType, primaryKey);
+        //    ControlFlow.CurrentDbConnection = new SqlConnectionManager(new ConnectionString(sConnString));
+        //    source.LinkTo(lookup);
+        //    lookup.LinkTo(dest);
+        //    source.Execute();
+        //    ControlFlow.CurrentDbConnection = new SqlConnectionManager(new ConnectionString(dConnString));
+        //    dest.Wait();
+
+        //}
+
+        //public class TransformationTestClass
+        //{
+        //    public int AddValue { get; set; } = 0;
+
+        //    public List<D_Customer_03092017> LookupData { get; set; } = new List<D_Customer_03092017>();
+
+        //    public D_Customer TestTransformationFunc(D_Customer myRow)
+        //    {
+        //        D_Customer output = new D_Customer()
+        //        {
+        //            CustomerID = myRow.CustomerID,
+        //            Email = myRow.Email,
+        //            PropertyCode = myRow.LastName,
+        //            InsertDate = myRow.InsertDate,
+        //            SourceID = myRow.SourceID,
+        //            AddressStatus = myRow.AddressStatus,
+        //            DedupeCheck = myRow.DedupeCheck,
+        //            AllowEMail = myRow.AllowEMail,
+        //            Report_Flag = myRow.Report_Flag,
+        //            UNIFOCUS_SCORE = myRow.UNIFOCUS_SCORE,
+        //            FirstName = myRow.FirstName,
+        //            LastName = LookupData.Where(ld => ld.FirstName == myRow.FirstName).Select(ld => ld.Email).FirstOrDefault()
+        //        };
+        //        return output;
+        //    }
+        //}
+
+        //public class D_Customer_03092017
+        //{
+        //    public string CustomerID { get; set; }
+        //    public string FirstName { get; set; }
+        //    public string LastName { get; set; }
+        //    public string Email { get; set; }
+        //    public string PropertyCode { get; set; }
+        //    public string InsertDate { get; set; }
+        //    public string SourceID { get; set; }
+        //    public string AddressStatus { get; set; }
+        //    public string DedupeCheck { get; set; }
+        //    public string AllowEMail { get; set; }
+        //    public string Report_Flag { get; set; }
+        //    public string UNIFOCUS_SCORE { get; set; }
+        //}
+
+        //public class D_Customer
+        //{
+        //    public string CustomerID { get; set; }
+        //    public string FirstName { get; set; }
+        //    public string LastName { get; set; }
+        //    public string Email { get; set; }
+        //    public string PropertyCode { get; set; }
+        //    public string InsertDate { get; set; }
+        //    public string SourceID { get; set; }
+        //    public string AddressStatus { get; set; }
+        //    public string DedupeCheck { get; set; }
+        //    public string AllowEMail { get; set; }
+        //    public string Report_Flag { get; set; }
+        //    public string UNIFOCUS_SCORE { get; set; }
+        //}
     }
 
 }

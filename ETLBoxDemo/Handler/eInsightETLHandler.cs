@@ -1,5 +1,9 @@
-﻿using ETLBoxDemo.src.Manager;
-using ETLBoxDemo.src.Tasks;
+﻿using ETLBox.src.Toolbox.Database;
+using ETLBoxDemo.Common;
+using ETLBoxDemo.src.Customer;
+using ETLBoxDemo.src.Manager;
+using ETLBoxDemo.src.Modules.Customer;
+using ETLBoxDemo.src.Utility;
 using Newtonsoft.Json;
 using Rebus.Bus;
 using Rebus.Handlers;
@@ -31,6 +35,16 @@ namespace ETLBoxDemo.Handler
 
         public async Task Handle(string request)
         {
+            string sC = "data source=QHB-CRMDB001.centralservices.local;initial catalog=eInsightCRM_OceanProperties_QA;uid=eInsightCRM_eContact_OceanProperties;pwd=Tv3CxdZwA%9;MultipleActiveResultSets=True";
+            string dC = "data source=localhost;initial catalog=eInsightCRM_AMResorts_QA;uid=sa;pwd=123456;MultipleActiveResultSets=True";
+
+            string dT = "dbo.D_Customer";
+            string sql = "SELECT TOP 20 CustomerID, FirstName, LastName, Email, PropertyCode, InsertDate, SourceID, AddressStatus, DedupeCheck, AllowEMail, Report_Flag, UNIFOCUS_SCORE FROM dbo.D_Customer with(Nolock);";
+            string sql1 = "SELECT TOP 20 CustomerID, FirstName, LastName, Email, PropertyCode, InsertDate, SourceID, AddressStatus, DedupeCheck, AllowEMail, Report_Flag, UNIFOCUS_SCORE FROM dbo.D_Customer_03092017 with(Nolock);";
+            List<Dictionary<string,string>> SQL_GetDataFromPMS_SpecialRequestsList = SQLHelper.GetDbValues(sC, "SQL_GetDataFromPMS_SpecialRequests", sql, null);
+            //new DataFlowTask<D_Customer>().runTask(sC, dC, dT, sql, true, true, new List<string>() { "FirstName", "LastName" }, new List<string>() { "CustomerID", "FirstName", "LastName", "Email", "PropertyCode", "InsertDate", "SourceID", "AddressStatus", "DedupeCheck", "AllowEMail", "Report_Flag", "UNIFOCUS_SCORE" });
+           // new DataFlowTask<D_Customer>().runTask1<D_Customer, D_Customer, D_Customer>(sC, dC, dT, sql, sql1, true, true, new List<string>() { "FirstName"}, new List<string>() { "CustomerID", "FirstName", "LastName", "Email", "PropertyCode", "InsertDate", "SourceID", "AddressStatus", "DedupeCheck", "AllowEMail", "Report_Flag", "UNIFOCUS_SCORE" });
+           
             try
             {
                 var settings = JsonConvert.DeserializeObject<Dictionary<string, object>>(request);
