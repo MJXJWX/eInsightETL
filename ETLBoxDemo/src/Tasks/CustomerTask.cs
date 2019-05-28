@@ -10,7 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace ETLBoxDemo.src.Customer
+namespace ETLBoxDemo.src.Tasks
 {
     public class CustomerTask
     {
