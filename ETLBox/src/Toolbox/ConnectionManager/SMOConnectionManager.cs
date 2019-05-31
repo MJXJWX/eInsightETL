@@ -35,6 +35,8 @@ namespace ALE.ETLBox.ConnectionManager {
             }
         }
 
+        public int rowsAffected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         public void Open() {
             SqlConnectionManager = new SqlConnectionManager((ConnectionString)ConnectionString);
             SqlConnectionManager.Open();

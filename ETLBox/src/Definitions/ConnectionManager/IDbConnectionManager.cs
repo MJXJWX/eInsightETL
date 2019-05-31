@@ -2,7 +2,8 @@
 using System.Data;
 
 namespace ALE.ETLBox.ConnectionManager {
-    public interface IDbConnectionManager : IConnectionManager  {      
+    public interface IDbConnectionManager : IConnectionManager  {   
+        int rowsAffected { get; set; }
         int ExecuteNonQuery(string command, IEnumerable<QueryParameter> parameterList = null);
         object ExecuteScalar(string command, IEnumerable<QueryParameter> parameterList = null);
         IDataReader ExecuteReader(string command, IEnumerable<QueryParameter> parameterList = null);

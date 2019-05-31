@@ -12,6 +12,7 @@ namespace ALE.ETLBox.ConnectionManager {
         public IDbConnectionString ConnectionString { get; set; }
 
         internal Connection DbConnection { get; set; }
+        public int rowsAffected { get; set; }
 
         //internal bool IsConnectionOpen => DbConnection?.State == ConnectionState.Open;
 

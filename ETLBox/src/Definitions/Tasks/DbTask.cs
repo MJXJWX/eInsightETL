@@ -263,7 +263,7 @@ namespace ALE.ETLBox.ControlFlow
                 conn.BulkInsert(data, tableName);
                 conn.AfterBulkInsert();
                 RowsAffected = data.RecordsAffected;
-                QueryFinish(LogType.Bulk);
+                QueryFinish(LogType.Rows);
             }
         }
 
@@ -276,8 +276,8 @@ namespace ALE.ETLBox.ControlFlow
                 conn.BeforeBulkUpdate();
                 conn.BulkUpdate(data, tableName, keys, updateFields);
                 conn.AfterBulkUpdate();
-                RowsAffected = data.RecordsAffected;
-                QueryFinish(LogType.Bulk);
+                RowsAffected = conn.rowsAffected;
+                QueryFinish(LogType.Rows);
             }
         }
 
@@ -290,8 +290,8 @@ namespace ALE.ETLBox.ControlFlow
                 conn.BeforeBulkUpsert();
                 conn.BulkUpsert(data, tableName, keys, updateFields);
                 conn.AfterBulkUpsert();
-                RowsAffected = data.RecordsAffected;
-                QueryFinish(LogType.Bulk);
+                RowsAffected = conn.rowsAffected;
+                QueryFinish(LogType.Rows);
             }
         }
 
