@@ -30,10 +30,10 @@ namespace ALE.ETLBox.ControlFlow
             set
             {
                 _currentDbConnection = value;
-                if (value != null)
-                {
-                    SetLoggingDatabase(value);
-                }
+                //if (value != null)
+                //{
+                //    SetLoggingDatabase(value);
+                //}
             }
         }
 

@@ -1,4 +1,8 @@
-﻿using ETLBox.src.Toolbox.Database;
+﻿using ALE.ETLBox;
+using ALE.ETLBox.ConnectionManager;
+using ALE.ETLBox.ControlFlow;
+using ALE.ETLBox.Logging;
+using ETLBox.src.Toolbox.Database;
 using ETLBoxDemo.Common;
 using ETLBoxDemo.src.Manager;
 using ETLBoxDemo.src.Modules.Customer;
@@ -35,20 +39,24 @@ namespace ETLBoxDemo.Handler
 
         public async Task Handle(string request)
         {
-            string sC = "data source=QHB-CRMDB001.centralservices.local;initial catalog=eInsightCRM_OceanProperties_QA;uid=eInsightCRM_eContact_OceanProperties;pwd=Tv3CxdZwA%9;MultipleActiveResultSets=True";
-            string dC = "data source=localhost;initial catalog=eInsightCRM_AMResorts_QA;uid=sa;pwd=123456;MultipleActiveResultSets=True";
+            //string sC = "data source=QHB-CRMDB001.centralservices.local;initial catalog=eInsightCRM_OceanProperties_QA;uid=eInsightCRM_eContact_OceanProperties;pwd=Tv3CxdZwA%9;MultipleActiveResultSets=True";
+            //string dC = "data source=localhost;initial catalog=eInsightCRM_AMResorts_QA;uid=sa;pwd=123456;MultipleActiveResultSets=True";
 
-            string dT = "dbo.D_Customer";
-            string sql = "SELECT TOP 20 CustomerID, FirstName, LastName, Email, PropertyCode, InsertDate, SourceID, AddressStatus, DedupeCheck, AllowEMail, Report_Flag, UNIFOCUS_SCORE FROM dbo.D_Customer with(Nolock);";
-            string sql1 = "SELECT TOP 20 CustomerID, FirstName, LastName, Email, PropertyCode, InsertDate, SourceID, AddressStatus, DedupeCheck, AllowEMail, Report_Flag, UNIFOCUS_SCORE FROM dbo.D_Customer_03092017 with(Nolock);";
-            List<Dictionary<string,string>> SQL_GetDataFromPMS_SpecialRequestsList = SQLHelper.GetDbValues(sC, "SQL_GetDataFromPMS_SpecialRequests", sql, null);
+            //string dT = "dbo.D_Customer";
+            //string sql = "SELECT TOP 20 CustomerID, FirstName, LastName, Email, PropertyCode, InsertDate, SourceID, AddressStatus, DedupeCheck, AllowEMail, Report_Flag, UNIFOCUS_SCORE FROM dbo.D_Customer with(Nolock);";
+            //string sql1 = "SELECT TOP 20 CustomerID, FirstName, LastName, Email, PropertyCode, InsertDate, SourceID, AddressStatus, DedupeCheck, AllowEMail, Report_Flag, UNIFOCUS_SCORE FROM dbo.D_Customer_03092017 with(Nolock);";
+            //List<Dictionary<string,string>> SQL_GetDataFromPMS_SpecialRequestsList = SQLHelper.GetDbValues(sC, "SQL_GetDataFromPMS_SpecialRequests", sql, null);
             //new DataFlowTask<D_Customer>().runTask(sC, dC, dT, sql, true, true, new List<string>() { "FirstName", "LastName" }, new List<string>() { "CustomerID", "FirstName", "LastName", "Email", "PropertyCode", "InsertDate", "SourceID", "AddressStatus", "DedupeCheck", "AllowEMail", "Report_Flag", "UNIFOCUS_SCORE" });
            // new DataFlowTask<D_Customer>().runTask1<D_Customer, D_Customer, D_Customer>(sC, dC, dT, sql, sql1, true, true, new List<string>() { "FirstName"}, new List<string>() { "CustomerID", "FirstName", "LastName", "Email", "PropertyCode", "InsertDate", "SourceID", "AddressStatus", "DedupeCheck", "AllowEMail", "Report_Flag", "UNIFOCUS_SCORE" });
            
             try
             {
+                //ControlFlow.CurrentDbConnection = new SqlConnectionManager(new ConnectionString("data source=localhost;initial catalog=eInsightCRM_AMResorts_QA;uid=sa;pwd=123456;MultipleActiveResultSets=True"));
+                //CreateLogTablesTask.CreateLog();
+                //StartLoadProcessTask.Start("Process 1", "Start Message 1", "ETL");
                 var settings = JsonConvert.DeserializeObject<Dictionary<string, object>>(request);
                 eContactDBManager.GetCompanySetting(settings);
+                ControlFlow.SetLoggingDatabase(new SqlConnectionManager(new ConnectionString("data source=localhost;initial catalog=eInsightCRM_AMResorts_QA;uid=sa;pwd=123456;MultipleActiveResultSets=True")));
 
                 //Customer
                 Console.WriteLine("Starting Customer");
@@ -58,7 +66,6 @@ namespace ETLBoxDemo.Handler
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex);
                 throw ex;
             }
 

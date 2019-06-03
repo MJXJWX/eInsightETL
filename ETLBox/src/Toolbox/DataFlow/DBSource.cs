@@ -1,6 +1,7 @@
 ﻿using ALE.ETLBox.ConnectionManager;
 using ALE.ETLBox.ControlFlow;
 using ALE.ETLBox.Helper;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -128,7 +129,18 @@ namespace ALE.ETLBox.DataFlow {
 
         void NLogStart() {
             if (!DisableLogging)
+                //{
+                //    LogEventInfo logEventInfo = new LogEventInfo(LogLevel.Info, TaskName, "Start");
+                //    logEventInfo.Properties["TaskName"] = TaskName;
+                //    logEventInfo.Properties["TaskType"] = TaskType;
+                //    logEventInfo.Properties["START"] = "START";
+                //    logEventInfo.Properties["TaskHash"] = TaskHash;
+                //    logEventInfo.Properties["STAGE"] = ControlFlow.ControlFlow.STAGE;
+                //    logEventInfo.Properties["LoadProcessKey"] = ControlFlow.ControlFlow.CurrentLoadProcess?.LoadProcessKey;
+
+                //    NLogger.Log(logEventInfo);
                 NLogger.Info(TaskName, TaskType, "START", TaskHash, ControlFlow.ControlFlow.STAGE, ControlFlow.ControlFlow.CurrentLoadProcess?.LoadProcessKey);
+            //}
         }
 
         void NLogFinish() {

@@ -1,4 +1,5 @@
-﻿using ETLBoxDemo.Handler;
+﻿using ALE.ETLBox.Logging;
+using ETLBoxDemo.Handler;
 using Rebus.Activation;
 using Rebus.Config;
 using Rebus.NLog.Config;
@@ -18,6 +19,7 @@ namespace ETLBoxDemo
 
         public void Start()
         {
+            NLog.Config.ConfigurationItemFactory.Default.LayoutRenderers.RegisterDefinition("etllog", typeof(ETLLogLayoutRenderer));
             adapter = new BuiltinHandlerActivator();
             adapter.Register(x => new eInsightETLHandler(adapter.Bus));
             adapter.Register(x => new eInsightETLErrorHandler(adapter.Bus));

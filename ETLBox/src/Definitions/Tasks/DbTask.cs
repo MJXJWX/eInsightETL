@@ -194,6 +194,7 @@ namespace ALE.ETLBox.ControlFlow
             try
             {
                 result = ((IDataReader)reader)[name];
+                if (result.GetType() == typeof(DBNull)) result = null;
             }
             catch
             {
@@ -347,7 +348,7 @@ namespace ALE.ETLBox.ControlFlow
         {
             NLogger.Info(TaskName, TaskType, "END", TaskHash, ControlFlow.STAGE, ControlFlow.CurrentLoadProcess?.LoadProcessKey);
             if (logType == LogType.Rows)
-                NLogger.Debug($"Rows affected: {RowsAffected ?? 0}", TaskType, "RUN", TaskHash, ControlFlow.STAGE, ControlFlow.CurrentLoadProcess?.LoadProcessKey);
+                NLogger.Info($"Rows affected: {RowsAffected ?? 0}", TaskType, "RUN", TaskHash, ControlFlow.STAGE, ControlFlow.CurrentLoadProcess?.LoadProcessKey);
         }
 
         void ExecuteExtension()

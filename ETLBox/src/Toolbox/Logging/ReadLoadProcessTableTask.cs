@@ -16,19 +16,21 @@ namespace ALE.ETLBox.Logging {
                 DisableLogging = true,
                 DisableExtension = true,
                 Actions = new List<Action<object>>() {
-                col => LoadProcess.LoadProcessKey = (int)col,
-                col => LoadProcess.StartDate = (DateTime)col,
-                col => LoadProcess.TransferCompletedDate = (DateTime?)col,
-                col => LoadProcess.EndDate = (DateTime?)col,
-                col => LoadProcess.ProcessName = (string)col,
-                col => LoadProcess.StartMessage = (string)col,
-                col => LoadProcess.IsRunning = (bool)col,
-                col => LoadProcess.EndMessage = (string)col,
-                col => LoadProcess.WasSuccessful = (bool)col,
-                col => LoadProcess.AbortMessage = (string)col,
-                col => LoadProcess.WasAborted= (bool)col,
-                col => LoadProcess.IsFinished= (bool)col,
-                col => LoadProcess.IsTransferCompleted= (bool)col
+                result => {
+                    LoadProcess.LoadProcessKey = (int)DbTask.GetValueFromReader(result, "LoadProcessKey");
+                    LoadProcess.StartDate = (DateTime)DbTask.GetValueFromReader(result, "StartDate");
+                    LoadProcess.TransferCompletedDate = (DateTime?)DbTask.GetValueFromReader(result, "TransferCompletedDate");
+                    LoadProcess.EndDate = (DateTime?)DbTask.GetValueFromReader(result, "EndDate");
+                    LoadProcess.ProcessName = (string)DbTask.GetValueFromReader(result, "ProcessName");
+                    LoadProcess.StartMessage = (string)DbTask.GetValueFromReader(result, "StartMessage");
+                    LoadProcess.IsRunning = (bool)DbTask.GetValueFromReader(result, "IsRunning");
+                    LoadProcess.EndMessage = (string)DbTask.GetValueFromReader(result, "EndMessage");
+                    LoadProcess.WasSuccessful = (bool)DbTask.GetValueFromReader(result, "WasSuccessful");
+                    LoadProcess.AbortMessage = (string)DbTask.GetValueFromReader(result, "AbortMessage");
+                    LoadProcess.WasAborted= (bool)DbTask.GetValueFromReader(result, "WasAborted");
+                    LoadProcess.IsFinished= (bool)DbTask.GetValueFromReader(result, "IsFinished");
+                    LoadProcess.IsTransferCompleted= (bool)DbTask.GetValueFromReader(result, "IsTransferCompleted");
+                }
                 }
             };
             if (ReadOption == ReadOptions.ReadAllProcesses) {

@@ -43,6 +43,7 @@ namespace ETLBoxDemo.src.Utility
             //Execute Task Flow task
             DBSource<T> dBSource = new DBSource<T>()
             {
+                _disableLogging = false,
                 ConnString = sConnString,
                 Sql = sql
             };
