@@ -65,7 +65,9 @@ namespace ETLBoxDemo.Handler
             }
             catch (Exception ex)
             {
-                throw ex;
+                ControlFlow.STAGE = "0";
+                new LogTask() { Message = $"Exception({ex.Message}) Occurred. Task Stopped!", ActionType = "Stop"}.Fatal();
+                NLog.LogManager.GetCurrentClassLogger().Fatal(ex);
             }
 
 
