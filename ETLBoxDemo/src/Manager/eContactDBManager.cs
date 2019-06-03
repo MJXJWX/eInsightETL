@@ -78,7 +78,7 @@ namespace ETLBoxDemo.src.Manager
             string eContactConnectionString = System.Configuration.ConfigurationManager.AppSettings["econtact-db-sql"];
             ControlFlow.CurrentDbConnection = new SqlConnectionManager(new ConnectionString(eContactConnectionString));
             List<QueryParameter> parameter = new List<QueryParameter>() { new QueryParameter("CompanyID", "int", companyId) };
-            new SqlTask("Select", SQL_GeteContactSettings, parameter)
+            new SqlTask("Get Company Settings", SQL_GeteContactSettings, parameter)
             {
                 Actions = new List<Action<object>>() {
                     result => {

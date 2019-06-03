@@ -1,6 +1,7 @@
 ﻿using ALE.ETLBox;
 using ALE.ETLBox.ConnectionManager;
 using ALE.ETLBox.ControlFlow;
+using ALE.ETLBox.Logging;
 using ETLBox.src.Toolbox.Database;
 using ETLBoxDemo.Common;
 using ETLBoxDemo.src.Manager;
@@ -16,7 +17,16 @@ namespace ETLBoxDemo.src.Tasks
     {
         public void Start()
         {
+            ControlFlow.STAGE = "0";
+            var logger = new LogTask()
+            {
+                Message = "D_Customer Task",
+                ActionType = "Start"
+            };
+            logger.Info();
+
             //Get Last CheckTime
+            ControlFlow.STAGE = "1";
             string lastCheckTime = CRMDBManager.GetLastCheckTime("D_CUSTOMER");
 
             //Truncate Table ETL_TEMP_Profiles
@@ -464,6 +474,9 @@ namespace ETLBoxDemo.src.Tasks
             // Insert EndTime into Log Table
             CRMDBManager.InsertEndTimeIntoLogTable();
 
+            ControlFlow.STAGE = "0-2";
+            logger.ActionType = "END";
+            logger.Info();
         }
     }
 }

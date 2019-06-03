@@ -55,14 +55,13 @@ namespace ETLBoxDemo.Handler
                 //CreateLogTablesTask.CreateLog();
                 //StartLoadProcessTask.Start("Process 1", "Start Message 1", "ETL");
                 var settings = JsonConvert.DeserializeObject<Dictionary<string, object>>(request);
+                ControlFlow.STAGE = "0";
                 eContactDBManager.GetCompanySetting(settings);
                 ControlFlow.SetLoggingDatabase(new SqlConnectionManager(new ConnectionString("data source=localhost;initial catalog=eInsightCRM_AMResorts_QA;uid=sa;pwd=123456;MultipleActiveResultSets=True")));
 
-                //Customer
-                Console.WriteLine("Starting Customer");
+                //Customer 
                 CustomerTask CT = new CustomerTask();
                 CT.Start();
-                Console.WriteLine("Customer finished...");
             }
             catch (Exception ex)
             {
