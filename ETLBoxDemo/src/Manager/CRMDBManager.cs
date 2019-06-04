@@ -1649,8 +1649,8 @@ namespace ETLBoxDemo.src.Manager
 
         public static readonly string SQL_InsertEndTimeIntoLogTable =
                 @"UPDATE  ETL_PACKAGE_LOG 
-                    SET EndTime = GETDATE(), RecordCount = ?
-                    WHERE Id = ? AND Component = 'D_CUSTOMER'
+                    SET EndTime = GETDATE(), RecordCount = {0}
+                    WHERE Id = {1} AND Component = 'D_CUSTOMER'
                     ";
 
         public static readonly string SQL_GetDataFromETL_TEMP_PROFILES_D_CUSTOMER_Insert =
@@ -1846,6 +1846,9 @@ WHERE FieldName = 'Ratetype'
             ) x
            WHERE  x.rn = 1;";
 
+
+        public static readonly string SQL_UpdatePMS_Address = @"UPDATE PMS_Address SET AddressTypeCode = 'W' WHERE AddressTypeCode = 'U'";
+
         public static string CreateSourceCode(string companyId, string sourceName, string subSourceName, byte isShowdropdown, int dedupPriority, int ETLProcess)
         {
             string sql = string.Format(SQL_CreateSourceCode, companyId, sourceName, subSourceName, isShowdropdown, dedupPriority, ETLProcess);
@@ -1978,7 +1981,7 @@ WHERE FieldName = 'Ratetype'
 
         public static void InsertEndTimeIntoLogTable()
         {
-            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_InsertEndTimeIntoLogTable", SQL_InsertEndTimeIntoLogTable, null);
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_InsertEndTimeIntoLogTable", string.Format(SQL_InsertEndTimeIntoLogTable,"",""), null);
         }
 
         public static void DeleteOrphanRecords()
@@ -2020,6 +2023,11 @@ WHERE FieldName = 'Ratetype'
         public static void UpdateTargetTableName1AndTargetFieldName1ForRateType()
         {
             SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_UpdateTargetTableName1AndTargetFieldName1ForRateType_RedLion", SQL_UpdateTargetTableName1AndTargetFieldName1ForRateType, null);
+        }
+        
+        public static void UpdateAddressTypeCodeUnderPMS_Address()
+        {
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "sqlUpdatePMS_Address", SQL_UpdatePMS_Address, null);
         }
     }
 }

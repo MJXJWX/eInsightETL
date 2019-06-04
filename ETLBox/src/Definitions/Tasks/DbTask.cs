@@ -229,13 +229,13 @@ namespace ALE.ETLBox.ControlFlow
             else
             {
                 if (columnNames == null) columnNames = typeInfo.PropertyNames;
-                foreach (var colName in columnNames)
-                {
-                    if (typeInfo.HasProperty(colName))
-                        Actions.Add(colValue => typeInfo.GetProperty(colName).SetValue(row, GetValueFromReader(colValue, colName)?.ToString()));
-                    else
-                        Actions.Add(col => { });
-                }
+                Actions.Add(colValue => {
+                    foreach (var colName in columnNames)
+                    {
+                        if (typeInfo.HasProperty(colName))
+                            typeInfo.GetProperty(colName).SetValue(row, GetValueFromReader(colValue, colName)?.ToString());
+                    }
+                });
                 InternalBeforeRowReadAction = () => row = (T)Activator.CreateInstance(typeof(T));
             }
             InternalAfterRowReadAction = () => doWithRowAction(row);

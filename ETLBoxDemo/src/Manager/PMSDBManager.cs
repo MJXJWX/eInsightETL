@@ -124,7 +124,7 @@ namespace ETLBoxDemo.src.Manager
             WHERE (p.LastUpdated >= '{0}' OR p.DateInserted >= '{0}') and p.LastUpdated <= '{1}' and p.DateInserted <= '{1}'";
 
         public static readonly string SQL_GetDataFromAddress =
-            @"SELECTA.PK_Address, 
+            @"SELECT A.PK_Address, 
                 A.FK_Profiles, 
                 A.AddressTypeCode, 
                 A.SourceAddressType, 
@@ -143,15 +143,13 @@ namespace ETLBoxDemo.src.Manager
                 A.IsDirty, 
                 A.IsPrimary, 
                 A.AddressCleansed, 
-                A.AddressLanguage FROM dbo.V_Address A with(nolock) 
-            WHERE RecordStatus = 'Active' AND (A.LastUpdated >= '{0}' OR A.DateInserted >= '{0}') and A.LastUpdated <= '{1}' and A.DateInserted <= '{1}'";
+                A.AddressLanguage FROM dbo.V_Address A with (nolock) 
+            WHERE A.RecordStatus = 'Active' AND (A.LastUpdated >= '{0}' OR A.DateInserted >= '{0}') and A.LastUpdated <= '{1}' and A.DateInserted <= '{1}'";
         
         public static readonly string SQL_GetSourceNameFromContactMethod =
             @"SELECT cm.PK_ContactMethod, 
                 cm.SourceName FROM dbo.ContactMethod cm with (nolock) 
             WHERE (cm.LastUpdated >= '{0}' OR cm.DateInserted >= '{0}') and cm.LastUpdated <= '{1}' and cm.DateInserted <='{1}'";
-        
-        public static readonly string SQL_UpdatePMS_Address = @"UPDATE PMS_Address SET AddressTypeCode = 'W' WHERE AddressTypeCode = 'U'";
         
         public static readonly string SQL_GetDataFromV_SpecialRequests =
             @"SELECT sr.PK_SpecialRequests ,
@@ -969,11 +967,6 @@ namespace ETLBoxDemo.src.Manager
         public static void TruncateTable(params string[] tableNames)
         {
             SQLHelper.TruncateTable(GetPMSConnectionString(), "TruncateETLPMSTEMPTable: " + string.Join(", ", tableNames), tableNames);
-        }
-
-        public static void UpdateAddressTypeCodeUnderPMS_Address()
-        {
-            SQLHelper.InsertOrUpdateDbValue(GetPMSConnectionString(), "sqlUpdatePMS_Address", SQL_UpdatePMS_Address, null);
         }
 
     }

@@ -57,7 +57,7 @@ namespace ETLBoxDemo.Handler
                 var settings = JsonConvert.DeserializeObject<Dictionary<string, object>>(request);
                 ControlFlow.STAGE = "0";
                 eContactDBManager.GetCompanySetting(settings);
-                ControlFlow.SetLoggingDatabase(new SqlConnectionManager(new ConnectionString("data source=localhost;initial catalog=eInsightCRM_AMResorts_QA;uid=sa;pwd=123456;MultipleActiveResultSets=True")));
+                //ControlFlow.SetLoggingDatabase(new SqlConnectionManager(new ConnectionString("data source=localhost;initial catalog=eInsightCRM_AMResorts_QA;uid=sa;pwd=123456;MultipleActiveResultSets=True")));
 
                 //Customer 
                 CustomerTask CT = new CustomerTask();
@@ -66,7 +66,7 @@ namespace ETLBoxDemo.Handler
             catch (Exception ex)
             {
                 ControlFlow.STAGE = "0";
-                new LogTask() { Message = $"Exception({ex.Message}) Occurred. Task Stopped!", ActionType = "Stop"}.Fatal();
+                new LogTask() { Message = $"Exception({ex.Message}) Occurred. Task Stopped!", ActionType = "Stop"}.Info();
                 NLog.LogManager.GetCurrentClassLogger().Fatal(ex);
             }
 

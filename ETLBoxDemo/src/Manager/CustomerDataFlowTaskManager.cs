@@ -101,7 +101,7 @@ namespace ETLBoxDemo.src.Manager
             var primaryKeys = new List<string>() { "PK_ContactMethod" };
             var properties = new List<string>() { "PK_ContactMethod", "SourceName" };
 
-            new DataFlowTask<PMS_ActionComments>().runTask(sourceCon, destinationCon, tableName, sql, true, false, primaryKeys, properties);
+            new DataFlowTask<PMS_ContactMethod>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
         }
 
         public static void DFT_MoveActionComments()

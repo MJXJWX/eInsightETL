@@ -26,5 +26,6 @@ namespace ETLBoxDemo.src.Modules.Customer
         public string CMExtraData { get; set; }
         public string InactiveDate { get; set; }
         public string RecordStatus { get; set; }
+        public string SourceName { get; set; }
     }
 }

@@ -145,7 +145,7 @@ namespace ALE.ETLBox.DataFlow {
 
         void NLogFinish() {
             if (!DisableLogging)
-                NLogger.Info(TaskName, TaskType, "END", TaskHash, ControlFlow.ControlFlow.STAGE, ControlFlow.ControlFlow.CurrentLoadProcess?.LoadProcessKey);
+                NLogger.Info(TaskName + $", {Buffer.Count}Rows queried", TaskType, "END", TaskHash, ControlFlow.ControlFlow.STAGE, ControlFlow.ControlFlow.CurrentLoadProcess?.LoadProcessKey);
         }
     }
 }
