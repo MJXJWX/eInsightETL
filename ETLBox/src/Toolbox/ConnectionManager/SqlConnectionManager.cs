@@ -91,7 +91,7 @@ namespace ALE.ETLBox.ConnectionManager {
                 BulkInsert(data, $"#temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)}");
 
                 //use the merge command to upsert from the temp table to the destination table
-                string mergeSql = $"merge into {tableName} as Target  using #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)} as Source  on  {string.Join(" AND ", keys.ConvertAll(k => k = $"Target.{k} collate SQL_Latin1_General_CP1_CI_AS = Source.{k} collate SQL_Latin1_General_CP1_CI_AS"))} when matched then update set {string.Join(" , ", updateFields.ConvertAll(c => c = $"Target.{c} = Source.{c}"))} when not matched then insert ({string.Join(",", cols)}) values (Source.{string.Join(", Source.", cols)});";
+                string mergeSql = $"merge into {tableName} as Target  using #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)} as Source  on  {string.Join(" AND ", keys.ConvertAll(k => k = $"Target.{k} = Source.{k} "))} when matched then update set {string.Join(" , ", updateFields.ConvertAll(c => c = $"Target.{c} = Source.{c}"))} when not matched then insert ({string.Join(",", cols)}) values (Source.{string.Join(", Source.", cols)});";
 
                 cmd.CommandText = mergeSql;
                 rowsAffected = cmd.ExecuteNonQuery();
