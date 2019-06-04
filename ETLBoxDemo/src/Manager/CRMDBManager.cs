@@ -1852,13 +1852,13 @@ WHERE FieldName = 'Ratetype'
         public static string CreateSourceCode(string companyId, string sourceName, string subSourceName, byte isShowdropdown, int dedupPriority, int ETLProcess)
         {
             string sql = string.Format(SQL_CreateSourceCode, companyId, sourceName, subSourceName, isShowdropdown, dedupPriority, ETLProcess);
-            return SQLHelper.GetDbValues(GetCRMConnectionString(), $"sqlCreateSourceCode_{subSourceName.Trim()}", sql, null).FirstOrDefault()?["SourceID"];
+            return SQLHelper.GetDbValues(GetCRMConnectionString(), $"SQL_CreateSourceCode_{subSourceName.Trim()}", sql, null).FirstOrDefault()?["SourceID"];
         }
 
         public static string GetLastCheckTime(string sourceTable)
         {
             string sqlGetLastCheckTime = $@"SELECT ISNULL(MAX(DriverExecutionDate), DATEADD(yy,-10,GETDATE())) AS LastCheckTime FROM ETL_PACKAGE_LOG WHERE Component = '{sourceTable}' AND EndTime IS NOT NULL";
-            List<Dictionary<string, string>> sqlGetLastCheckTimeList = SQLHelper.GetDbValues(GetCRMConnectionString(), $"sqlGet{sourceTable}LastCheckTime", sqlGetLastCheckTime, null);
+            List<Dictionary<string, string>> sqlGetLastCheckTimeList = SQLHelper.GetDbValues(GetCRMConnectionString(), $"SQL_Get{sourceTable}LastCheckTime", sqlGetLastCheckTime, null);
             return sqlGetLastCheckTimeList.FirstOrDefault()?["LastCheckTime"];
         }
 
@@ -2027,7 +2027,7 @@ WHERE FieldName = 'Ratetype'
         
         public static void UpdateAddressTypeCodeUnderPMS_Address()
         {
-            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "sqlUpdatePMS_Address", SQL_UpdatePMS_Address, null);
+            SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_UpdatePMS_Address", SQL_UpdatePMS_Address, null);
         }
     }
 }
