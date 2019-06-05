@@ -41,7 +41,7 @@ namespace ALE.ETLBox.ConnectionManager {
                 {
                     if (columns.Length > 0)
                         columns.Append(", ");
-                    columns.Append($"{colMap.SourceColumn} nvarchar(50)");
+                    columns.Append($"{colMap.SourceColumn} {(data.ColumnTypes[colMap.SourceColumn] == "uniqueidentifier" ? "varchar(50)" : ((data.ColumnTypes[colMap.SourceColumn] == "varchar" || data.ColumnTypes[colMap.SourceColumn] == "nvarchar") ? (data.ColumnTypes[colMap.SourceColumn] + "(2000)") : data.ColumnTypes[colMap.SourceColumn]))}");
                     cols.Add(colMap.SourceColumn);
                 }
                 var createTempTableCommand = $"Create Table #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)} ({columns.ToString()})";
@@ -54,7 +54,7 @@ namespace ALE.ETLBox.ConnectionManager {
                 BulkInsert(data, $"#temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)}");
 
                 //use the merge command to upsert from the temp table to the destination table
-                string mergeSql = $"merge into {tableName} as Target  using #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)} as Source  on  {string.Join(" AND ", keys.ConvertAll(k => k = $"Target.{k} collate SQL_Latin1_General_CP1_CI_AS = Source.{k} collate SQL_Latin1_General_CP1_CI_AS"))} when matched then update set {string.Join(" , ", updateFields.ConvertAll(c => c = $"Target.{c} = Source.{c}"))};";
+                string mergeSql = $"merge into {tableName} as Target  using #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)} as Source  on  {string.Join(" AND ", keys.ConvertAll(k => k = $"Target.{k} = Source.{k}"))} when matched then update set {string.Join(" , ", updateFields.ConvertAll(c => c = $"Target.{c} = Source.{c}"))};";
 
                 cmd.CommandText = mergeSql;
                 rowsAffected = cmd.ExecuteNonQuery();
@@ -65,7 +65,7 @@ namespace ALE.ETLBox.ConnectionManager {
 
             }
         }
-
+        
         public override void BulkUpsert(ITableData data, string tableName, List<string> keys, List<string> updateFields)
         {
             using(var conn = DbConnection)
@@ -78,7 +78,7 @@ namespace ALE.ETLBox.ConnectionManager {
                 {
                     if (columns.Length > 0)
                         columns.Append(", ");
-                    columns.Append($"{colMap.SourceColumn} nvarchar(50)");
+                    columns.Append($"{colMap.SourceColumn} {(data.ColumnTypes[colMap.SourceColumn] == "uniqueidentifier" ? "varchar(50)" : ((data.ColumnTypes[colMap.SourceColumn] == "varchar" || data.ColumnTypes[colMap.SourceColumn] == "nvarchar") ? (data.ColumnTypes[colMap.SourceColumn] + "(2000)") : data.ColumnTypes[colMap.SourceColumn]))}");
                     cols.Add(colMap.SourceColumn);
                 }
                 var createTempTableCommand = $"Create Table #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)} ({columns.ToString()})";

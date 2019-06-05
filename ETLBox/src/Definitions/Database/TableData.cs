@@ -26,6 +26,36 @@ namespace ALE.ETLBox {
             }
         }
 
+        public Dictionary<string,string> ColumnTypes
+        {
+            get
+            {
+                if (HasDefinition)
+                    return GetColumnTypesFromDefinition();
+                else
+                    throw new ETLBoxException("No table definition found. For Bulk insert a TableDefinition is always needed.");
+            }
+        }
+
+        private Dictionary<string, string> GetColumnTypesFromDefinition()
+        {
+            var result = new Dictionary<string, string>();
+            foreach (var col in Definition.Columns)
+                if (!col.IsIdentity)
+                {
+                    if (TypeInfo != null && !TypeInfo.IsArray)
+                    {
+                        if (TypeInfo.HasProperty(col.Name))
+                            result.Add(col.Name, col.DataType);
+                    }
+                    else
+                    {
+                        result.Add(col.Name, col.DataType);
+                    }
+                }
+            return result;
+        }
+
         private IColumnMappingCollection GetColumnMappingFromDefinition()
         {
             var mapping = new DataColumnMappingCollection();

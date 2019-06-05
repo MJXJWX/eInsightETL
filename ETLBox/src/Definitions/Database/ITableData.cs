@@ -7,5 +7,6 @@ namespace ALE.ETLBox {
     
     public interface ITableData : IDisposable, IDataReader {
         IColumnMappingCollection ColumnMapping { get; }
+        Dictionary<string,string> ColumnTypes { get; }
     }
 }
