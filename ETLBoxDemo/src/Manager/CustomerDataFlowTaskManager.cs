@@ -167,39 +167,39 @@ namespace ETLBoxDemo.src.Manager
 
         public static void DFT_InsertOrUpdateD_CustomerWithoutMembership()
         {
-            var sourceCon = CRMDBManager.GetCRMConnectionString();
+            var sourceCon = PMSDBManager.GetPMSConnectionString();
             var destinationCon = CRMDBManager.GetCRMConnectionString();
-            var lookUpCon = PMSDBManager.GetPMSConnectionString();
+            var lookUpCon = CRMDBManager.GetCRMConnectionString();
             var tableName = "dbo.D_CUSTOMER";
-            var sql = CRMDBManager.SQL_GetDataFromETL_TEMP_PROFILES_D_CUSTOMER_Insert;
-            var lsql = PMSDBManager.SQL_GetDataFromProfiles;
+            var sql = PMSDBManager.SQL_GetDataFromProfiles;
+            var lsql = CRMDBManager.SQL_GetDataFromETL_TEMP_PROFILES_D_CUSTOMER_Insert;
 
             var keys = new Dictionary<string, string>();
             keys.Add("PK_Profiles", "PK_Profiles");
             var lMapping = new Dictionary<string, string>();
-            lMapping.Add("PropertyCode", "PropertyCode");
-            lMapping.Add("SourceGuestID", "SourceGuestID");
-            lMapping.Add("FirstName", "FirstName");
-            lMapping.Add("MiddleName", "MiddleName");
-            lMapping.Add("LastName", "LastName");
-            lMapping.Add("Salutation", "Salutation");
-            lMapping.Add("ShortTitle", "ShortTitle");
-            lMapping.Add("GenderCode", "GenderCode");
-            lMapping.Add("Company", "Company");
-            lMapping.Add("CompanyTitle", "CompanyTitle");
-            lMapping.Add("JobTitle", "JobTitle");
-            lMapping.Add("Languages", "Languages");
-            lMapping.Add("SourceID", "SourceID");
-            lMapping.Add("DedupeCheck", "DedupeCheck");
-            lMapping.Add("DatePMSProfileUpdated", "DatePMSProfileUpdated");
-            lMapping.Add("AllowEMail", "AllowEMail");
-            lMapping.Add("AllowMail", "AllowMail");
-            lMapping.Add("AllowSMS", "AllowSMS");
-            lMapping.Add("AllowPhone", "AllowPhone");
-            lMapping.Add("ExternalProfileID2", "ExternalProfileID2");
-            lMapping.Add("VIPID", "VIPID");
-            lMapping.Add("VIPCode", "VIPCode");
-            lMapping.Add("Nationality", "Nationality");
+            //lMapping.Add("PropertyCode", "PropertyCode");
+            //lMapping.Add("SourceGuestID", "SourceGuestID");
+            //lMapping.Add("FirstName", "FirstName");
+            //lMapping.Add("MiddleName", "MiddleName");
+            //lMapping.Add("LastName", "LastName");
+            //lMapping.Add("Salutation", "Salutation");
+            //lMapping.Add("ShortTitle", "ShortTitle");
+            //lMapping.Add("GenderCode", "GenderCode");
+            //lMapping.Add("Company", "Company");
+            //lMapping.Add("CompanyTitle", "CompanyTitle");
+            //lMapping.Add("JobTitle", "JobTitle");
+            //lMapping.Add("Languages", "Languages");
+            //lMapping.Add("SourceID", "SourceID");
+            //lMapping.Add("DedupeCheck", "DedupeCheck");
+            //lMapping.Add("DatePMSProfileUpdated", "DatePMSProfileUpdated");
+            //lMapping.Add("AllowEMail", "AllowEMail");
+            //lMapping.Add("AllowMail", "AllowMail");
+            //lMapping.Add("AllowSMS", "AllowSMS");
+            //lMapping.Add("AllowPhone", "AllowPhone");
+            //lMapping.Add("ExternalProfileID2", "ExternalProfileID2");
+            //lMapping.Add("VIPID", "VIPID");
+            //lMapping.Add("VIPCode", "VIPCode");
+            //lMapping.Add("Nationality", "Nationality");
 
             var properties = new List<string>() { "PK_Profiles", "PropertyCode", "SourceGuestID", "FirstName", "MiddleName", "LastName", "Salutation", "ShortTitle", "GenderCode", "Company", "CompanyTitle", "JobTitle", "Languages", "SourceID", "DedupeCheck", "DatePMSProfileUpdated", "AllowEMail", "AllowMail", "AllowSMS", "AllowPhone", "ExternalProfileID2", "VIPID", "VIPCode", "Nationality" };
             new DataFlowTask<D_Customer, D_Customer, D_Customer>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "PK_Profiles" }, properties);

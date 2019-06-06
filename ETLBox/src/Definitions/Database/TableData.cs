@@ -1,4 +1,5 @@
 ﻿using ALE.ETLBox.DataFlow;
+using ALE.ETLBox.Helper;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -46,7 +47,13 @@ namespace ALE.ETLBox {
                     if (TypeInfo != null && !TypeInfo.IsArray)
                     {
                         if (TypeInfo.HasProperty(col.Name))
+                        {
                             result.Add(col.Name, col.DataType);
+                            if (col.DataType != "uniqueidentifier")
+                            {
+                                FormatRowValue(col.DataType, col.Name, col.DefaultValue);
+                            }
+                        }
                     }
                     else
                     {
@@ -54,6 +61,25 @@ namespace ALE.ETLBox {
                     }
                 }
             return result;
+        }
+
+        private void FormatRowValue(string type, string fieldname, string defaultValue)
+        {
+            var index = GetOrdinal(fieldname) - 1;
+            Type sType = DataTypeConverter.GetTypeObject(type);
+
+            Rows.ForEach(r => {
+                if (r[index] == null)
+                {
+                    r[index] = defaultValue;
+                }
+                if (sType.Name.Equals("Boolean"))
+                {
+                 
+                    r[index] = ("1".Equals(r[index]) || "true".Equals(r[index] +"", StringComparison.CurrentCultureIgnoreCase)) ? "True" : "False";
+                }
+            });
+
         }
 
         private IColumnMappingCollection GetColumnMappingFromDefinition()

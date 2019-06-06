@@ -178,7 +178,7 @@ namespace ETLBoxDemo.src.Utility
                 throw new KeyNotFoundException("Missing mapping of table data and destination table");
             }
 
-            if (string.IsNullOrEmpty(lookupSql) || lookupKey == null || lookupKey.Count == 0 || lookupMapping == null || lookupMapping.Count == 0)
+            if (string.IsNullOrEmpty(lookupSql) || lookupKey == null || lookupKey.Count == 0 || lookupMapping == null )
             {
                 throw new KeyNotFoundException("Missing sql or mapping of look up data");
             }

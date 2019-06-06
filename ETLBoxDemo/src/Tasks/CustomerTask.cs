@@ -30,14 +30,14 @@ namespace ETLBoxDemo.src.Tasks
             string lastCheckTime = CRMDBManager.GetLastCheckTime("D_CUSTOMER");
 
             //Truncate Table ETL_TEMP_Profiles
-            PMSDBManager.TruncateTable("ETL_TEMP_Profiles");
+            //PMSDBManager.TruncateTable("ETL_TEMP_Profiles");
 
 
             //TRUNCATE TABLE ETL_TEMP_PROFILES_D_CUSTOMER;
             //TRUNCATE TABLE ETL_TEMP_PROFILES_D_CUSTOMER_INSERT;
             //TRUNCATE TABLE ETL_TEMP_PROFILES_D_CUSTOMER_UPDATE;
             //TRUNCATE TABLE ETL_TEMP_D_CUSTOMER_For_Email;
-            CRMDBManager.TruncateTable("ETL_TEMP_PROFILES_D_CUSTOMER", "ETL_TEMP_PROFILES_D_CUSTOMER_INSERT", "ETL_TEMP_PROFILES_D_CUSTOMER_UPDATE", "ETL_TEMP_D_CUSTOMER_For_Email");
+            //CRMDBManager.TruncateTable("ETL_TEMP_PROFILES_D_CUSTOMER", "ETL_TEMP_PROFILES_D_CUSTOMER_INSERT", "ETL_TEMP_PROFILES_D_CUSTOMER_UPDATE", "ETL_TEMP_D_CUSTOMER_For_Email");
 
             var companyId = CompanySettings.CompanyID;
             if ("7375".Equals(companyId))

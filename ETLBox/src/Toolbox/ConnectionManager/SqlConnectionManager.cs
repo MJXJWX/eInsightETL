@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Text;
 
 namespace ALE.ETLBox.ConnectionManager {
@@ -37,11 +38,12 @@ namespace ALE.ETLBox.ConnectionManager {
                     conn.Open();
                 StringBuilder columns = new StringBuilder();
                 List<string> cols = new List<string>();
+                var columnTypes = data.ColumnTypes;
                 foreach (IColumnMapping colMap in data.ColumnMapping)
                 {
                     if (columns.Length > 0)
                         columns.Append(", ");
-                    columns.Append($"{colMap.SourceColumn} {(data.ColumnTypes[colMap.SourceColumn] == "uniqueidentifier" ? "varchar(50)" : ((data.ColumnTypes[colMap.SourceColumn] == "varchar" || data.ColumnTypes[colMap.SourceColumn] == "nvarchar") ? (data.ColumnTypes[colMap.SourceColumn] + "(2000)") : data.ColumnTypes[colMap.SourceColumn]))}");
+                    columns.Append($"{colMap.SourceColumn} {(columnTypes[colMap.SourceColumn] == "uniqueidentifier" ? "varchar(50)" : ((columnTypes[colMap.SourceColumn] == "varchar" || columnTypes[colMap.SourceColumn] == "nvarchar") ? (columnTypes[colMap.SourceColumn] + "(2000)") : columnTypes[colMap.SourceColumn]))}");
                     cols.Add(colMap.SourceColumn);
                 }
                 var createTempTableCommand = $"Create Table #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)} ({columns.ToString()})";
@@ -74,11 +76,13 @@ namespace ALE.ETLBox.ConnectionManager {
                     conn.Open();
                 StringBuilder columns = new StringBuilder();
                 List<string> cols = new List<string>();
+                keys.ForEach(k => { if (!updateFields.Contains(k)) updateFields.Add(k); });
+                var columnTypes = data.ColumnTypes;
                 foreach (IColumnMapping colMap in data.ColumnMapping)
                 {
                     if (columns.Length > 0)
                         columns.Append(", ");
-                    columns.Append($"{colMap.SourceColumn} {(data.ColumnTypes[colMap.SourceColumn] == "uniqueidentifier" ? "varchar(50)" : ((data.ColumnTypes[colMap.SourceColumn] == "varchar" || data.ColumnTypes[colMap.SourceColumn] == "nvarchar") ? (data.ColumnTypes[colMap.SourceColumn] + "(2000)") : data.ColumnTypes[colMap.SourceColumn]))}");
+                    columns.Append($"{colMap.SourceColumn} {(columnTypes[colMap.SourceColumn] == "uniqueidentifier" ? "varchar(50)" : ((columnTypes[colMap.SourceColumn] == "varchar" || columnTypes[colMap.SourceColumn] == "nvarchar") ? (columnTypes[colMap.SourceColumn] + "(2000)") : columnTypes[colMap.SourceColumn]))}");
                     cols.Add(colMap.SourceColumn);
                 }
                 var createTempTableCommand = $"Create Table #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)} ({columns.ToString()})";
@@ -91,7 +95,7 @@ namespace ALE.ETLBox.ConnectionManager {
                 BulkInsert(data, $"#temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)}");
 
                 //use the merge command to upsert from the temp table to the destination table
-                string mergeSql = $"merge into {tableName} as Target  using #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)} as Source  on  {string.Join(" AND ", keys.ConvertAll(k => k = $"Target.{k} = Source.{k} "))} when matched then update set {string.Join(" , ", updateFields.ConvertAll(c => c = $"Target.{c} = Source.{c}"))} when not matched then insert ({string.Join(",", cols)}) values (Source.{string.Join(", Source.", cols)});";
+                string mergeSql = $"merge into {tableName} as Target  using #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)} as Source  on  {string.Join(" AND ", keys.ConvertAll(k => k = $"Target.{k} = Source.{k} "))} when matched then update set {string.Join(" , ", updateFields.ConvertAll(c => c = $"Target.{c} = Source.{c}"))} when not matched then insert ({string.Join(",", updateFields)}) values (Source.{string.Join(", Source.", updateFields)});";
 
                 cmd.CommandText = mergeSql;
                 rowsAffected = cmd.ExecuteNonQuery();
