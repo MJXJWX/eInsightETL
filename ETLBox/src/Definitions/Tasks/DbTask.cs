@@ -231,17 +231,18 @@ namespace ALE.ETLBox.ControlFlow
             {
                 IDataReaderEntityHelper<T> builder = null;
                 if (columnNames == null) columnNames = typeInfo.PropertyNames;
-                //Actions.Add(reader => {
-                //    builder = IDataReaderEntityHelper<T>.CreateBuilder((IDataReader)reader);
-                //    row = builder.Build((IDataReader)reader);
-                //});
-                foreach (var colName in columnNames)
+                Actions.Add(reader =>
                 {
-                    if (typeInfo.HasProperty(colName))
-                        Actions.Add(colValue => typeInfo.GetProperty(colName).SetValue(row, GetValueFromReader(colValue, colName)?.ToString()));
-                    else
-                        Actions.Add(col => { });
-                }
+                    builder = IDataReaderEntityHelper<T>.CreateBuilder((IDataReader)reader);
+                    row = builder.Build((IDataReader)reader);
+                });
+                //foreach (var colName in columnNames)
+                //{
+                //    if (typeInfo.HasProperty(colName))
+                //        Actions.Add(colValue => typeInfo.GetProperty(colName).SetValue(row, GetValueFromReader(colValue, colName)?.ToString()));
+                //    else
+                //        Actions.Add(col => { });
+                //}
                 InternalBeforeRowReadAction = () => row = (T)Activator.CreateInstance(typeof(T));
             }
             InternalAfterRowReadAction = () => doWithRowAction(row);

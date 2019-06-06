@@ -32,7 +32,8 @@ namespace ETLBox.src.Helper
             var properties = typeof(Entity).GetProperties();
             for (int i = 0; i < dataRecord.FieldCount; i++)
             {
-                PropertyInfo propertyInfo = typeof(Entity).GetProperty(properties.FirstOrDefault(x => x.Name.Equals(dataRecord.GetName(i)))?.Name);
+                var fieldName = properties.FirstOrDefault(x => x.Name.Equals(dataRecord.GetName(i)))?.Name;
+                PropertyInfo propertyInfo = string.IsNullOrEmpty(fieldName) ? null : typeof(Entity).GetProperty(fieldName);
                 Label endIfLabel = generator.DefineLabel();
                 if (propertyInfo != null && propertyInfo.GetSetMethod() != null)
                 {
