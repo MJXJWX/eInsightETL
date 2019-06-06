@@ -1670,7 +1670,9 @@ namespace ETLBoxDemo.src.Manager
                     select TOP 1 CendynPropertyID, PropertyCode from D_Property with(nolock)
                     WHERE CendynPropertyID IN(SELECT CendynPropertyID FROM dbo.D_PROPERTY  with(nolock) 
                     GROUP BY CendynPropertyID
-                    HAVING COUNT(*) > 1 AND ISNULL(CendynPropertyID, '0') <> '0' AND CendynPropertyID <> '')";
+                    HAVING COUNT(*) > 1 AND ISNULL(CendynPropertyID, '0') <> '0' AND CendynPropertyID <> '')
+                    UNION 
+					Select 0 as CendynPropertyID, '' as PropertyCode ;";
 
         public static readonly string SQL_GetDataFromD_customerAndETL_TEMP_Profiles_D_Customer =
                 @"select DISTINCT d.PK_Profiles, d.CustomerID from dbo.d_customer as d with(nolock) 

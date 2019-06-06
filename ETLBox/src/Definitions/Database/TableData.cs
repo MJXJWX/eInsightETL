@@ -15,6 +15,7 @@ namespace ALE.ETLBox {
 
     public class TableData<T> : ITableData
     {
+        public bool needIdentityColumn { get; set; }
         public int? EstimatedBatchSize { get; set; }
         public IColumnMappingCollection ColumnMapping
         {
@@ -42,30 +43,27 @@ namespace ALE.ETLBox {
         {
             var result = new Dictionary<string, string>();
             foreach (var col in Definition.Columns)
-                if (!col.IsIdentity)
+                if (TypeInfo != null && !TypeInfo.IsArray)
                 {
-                    if (TypeInfo != null && !TypeInfo.IsArray)
-                    {
-                        if (TypeInfo.HasProperty(col.Name))
-                        {
-                            result.Add(col.Name, col.DataType);
-                            if (col.DataType != "uniqueidentifier")
-                            {
-                                FormatRowValue(col.DataType, col.Name, col.DefaultValue);
-                            }
-                        }
-                    }
-                    else
+                    if (TypeInfo.HasProperty(col.Name))
                     {
                         result.Add(col.Name, col.DataType);
+                        if (col.DataType != "uniqueidentifier")
+                        {
+                            FormatRowValue(col.DataType, col.Name, col.DefaultValue);
+                        }
                     }
+                }
+                else
+                {
+                    result.Add(col.Name, col.DataType);
                 }
             return result;
         }
 
         private void FormatRowValue(string type, string fieldname, string defaultValue)
         {
-            var index = GetOrdinal(fieldname) - 1;
+            var index = TypeInfo.PropertyIndex[fieldname];
             Type sType = DataTypeConverter.GetTypeObject(type);
 
             Rows.ForEach(r => {
@@ -86,7 +84,7 @@ namespace ALE.ETLBox {
         {
             var mapping = new DataColumnMappingCollection();
             foreach (var col in Definition.Columns)
-                if (!col.IsIdentity) {
+                if (!col.IsIdentity || (col.IsIdentity && needIdentityColumn)) {
                     if (TypeInfo != null && !TypeInfo.IsArray)
                     {
                         if (TypeInfo.HasProperty(col.Name))

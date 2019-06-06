@@ -7,6 +7,7 @@ namespace ETLBoxDemo.src.Modules.Customer
     public class D_Customer
     {
         public string CustomerID { get; set; }
+        public string CendynPropertyID { get; set; }
         public string PropertyCode{ get; set; }
         public string PK_Profiles{ get; set; }
         public string SourceGuestID{ get; set; }
@@ -48,7 +49,7 @@ namespace ETLBoxDemo.src.Modules.Customer
         public string RecordStatus { get; set; }
 
         public string Address1 { get; set; }
-        public string AddressTypeCode { get; set; }
+        public string AddressType { get; set; }
         public string Address2 { get; set; }
         public string City { get; set; }
         public string StateProvinceCode { get; set; }

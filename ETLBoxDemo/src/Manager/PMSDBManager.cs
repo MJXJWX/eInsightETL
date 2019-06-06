@@ -855,7 +855,7 @@ namespace ETLBoxDemo.src.Manager
 
         public static readonly string SQL_GetDataFromV_Address =
                 @"SELECT FK_Profiles ,
-                           AddressTypeCode ,
+                           AddressTypeCode AS AddressType,
                            Address1 ,
                            Address2 ,
                            City ,

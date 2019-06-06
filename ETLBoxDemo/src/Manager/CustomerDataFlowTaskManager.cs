@@ -408,12 +408,13 @@ namespace ETLBoxDemo.src.Manager
             new DataFlowTask<D_Customer>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
         }
 
+        //CHeck AddressType and AddressTypeCode
         public static void DFT_UpdateD_CustomerForAddress()
         {
             var sourceCon = PMSDBManager.GetPMSConnectionString();
             var destinationCon = CRMDBManager.GetCRMConnectionString();
             var lookUpCon = CRMDBManager.GetCRMConnectionString();
-            var tableName = "dbo.D_Customer_Profile";
+            var tableName = "dbo.D_Customer";
             var sql = PMSDBManager.SQL_GetDataFromV_Address;
             var lsql = CRMDBManager.SQL_GetDataFromPMS_PROFILE_MAPPING;
 
@@ -433,7 +434,7 @@ namespace ETLBoxDemo.src.Manager
             //lMapping.Add("ZipCodePlus4", "ZipCodePlus4");
             //lMapping.Add("DedupeCheck", "DedupeCheck");
             //lMapping.Add("AddressStatus", "AddressStatus");
-            var properties = new List<string>() { "CustomerID", "Address1", "AddressTypeCode", "Address2", "City", "StateProvinceCode", "ZipCode", "CountryCode", "DivisionCode", "RegionCode", "ZipCodePlus4", "DedupeCheck", "AddressStatus" };
+            var properties = new List<string>() { "CustomerID", "Address1", "AddressType", "Address2", "City", "StateProvinceCode", "ZipCode", "CountryCode", "DivisionCode", "RegionCode", "ZipCodePlus4", "DedupeCheck", "AddressStatus" };
 
             new DataFlowTask<D_Customer, D_Customer, PMS_Profile_Mapping>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" }, properties);
 
