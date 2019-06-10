@@ -26,7 +26,7 @@ namespace ETLBoxDemo.src.Tasks
             logger.Info();
 
             //Get Last CheckTime
-            ControlFlow.STAGE = "1";
+            ControlFlow.STAGE = (int.Parse(ControlFlow.STAGE) + 1) + "";
             string lastCheckTime = CRMDBManager.GetLastCheckTime("D_CUSTOMER");
 
             //Truncate Table ETL_TEMP_Profiles
@@ -474,7 +474,7 @@ namespace ETLBoxDemo.src.Tasks
             // Insert EndTime into Log Table
             //CRMDBManager.InsertEndTimeIntoLogTable();
 
-            ControlFlow.STAGE = "0-2";
+            ControlFlow.STAGE = (int.Parse(ControlFlow.STAGE) - 1) + "";
             logger.ActionType = "END";
             logger.Info();
         }

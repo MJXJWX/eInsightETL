@@ -53,7 +53,7 @@ namespace ETLBoxDemo.src.Manager
             var primaryKeys = new List<string>() { "FK_Profile" };
             var properties = new List<string>() { "FK_Profile", "DocType", "DocSource", "CodeOnDocument", "DocNotes", "DocId_PII", "NameOnDocument_PII", "DocumentBody_PII", "NationalityOnDocument", "EffectiveDate", "ExpirationDate", "PII_StoredAs", "PII_Algorithm", "PII_Key", "PII_KeyId", "Issuer ", "IssuerAddress1", "IssuerAddress2", "IssuerCity", "IssuerStateProv", "IssuerPostalCode", "IssuerCountry", "IsPrimary", "InactiveDate", "DateCreated", "LastUpdated" };
 
-            new DataFlowTask<PMS_ProfileDocuments>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+            new DataFlowTask<PMS_ProfileDocuments>() { TaskName = "Move ProfileDocument" }.runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
         }
 
         public static void DFT_MoveProfilePolicies()
@@ -65,7 +65,7 @@ namespace ETLBoxDemo.src.Manager
             var primaryKeys = new List<string>() { "PK_ProfilePolicies" };
             var properties = new List<string>() { "PK_ProfilePolicies", "FK_Profiles", "FK_PolicyTypes", "AttributeName", "IntegerValue", "StringValue", "StartDate", "ExpirationDate", "Comments" };
 
-            new DataFlowTask<PMS_ProfilePolicies>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+            new DataFlowTask<PMS_ProfilePolicies>() { TaskName = "Move ProfilePolicies" }.runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
         }
 
         public static void DFT_MoveContactMethodPolicies()
@@ -77,7 +77,7 @@ namespace ETLBoxDemo.src.Manager
             var primaryKeys = new List<string>() { "PK_ContactMethodPolicies" };
             var properties = new List<string>() { "PK_ContactMethodPolicies", "FK_ContactMethod", "FK_PolicyTypes", "AttributeName", "IntegerValue", "StringValue", "StartDate", "ExpirationDate", "Comments" };
 
-            new DataFlowTask<PMS_ContactMethodPolicies>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+            new DataFlowTask<PMS_ContactMethodPolicies>() { TaskName= "Move ContactMethodPolicies" }.runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
         }
 
         public static void DFT_MoveContactMethod()
@@ -89,7 +89,7 @@ namespace ETLBoxDemo.src.Manager
             var primaryKeys = new List<string>() { "PK_ContactMethod" };
             var properties = new List<string>() { "PK_ContactMethod", "FK_Reservations", "FK_Profiles", "CMStatusId", "CMType", "CMData", "CMCategory", "CMOptOut", "CMSourceDate", "DateInserted", "LastUpdated", "Checksum", "IsDirty", "IsPrimary", "Confirmation", "CMExtraData", "InactiveDate", "RecordStatus" };
 
-            new DataFlowTask<PMS_ContactMethod>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+            new DataFlowTask<PMS_ContactMethod>() { TaskName= "Move ContactMethod" }.runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
         }
 
         public static void DFT_UpdateSourceNameUnderContactMethod()
@@ -101,7 +101,7 @@ namespace ETLBoxDemo.src.Manager
             var primaryKeys = new List<string>() { "PK_ContactMethod" };
             var properties = new List<string>() { "PK_ContactMethod", "SourceName" };
 
-            new DataFlowTask<PMS_ContactMethod>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+            new DataFlowTask<PMS_ContactMethod>() { TaskName = "Update SourceName Under ContactMethod" }.runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
         }
 
         public static void DFT_MoveActionComments()
@@ -113,7 +113,7 @@ namespace ETLBoxDemo.src.Manager
             var primaryKeys = new List<string>() { "PK_ActionComments" };
             var properties = new List<string>() { "PK_ActionComments", "FK_Internal", "KeyTable", "CommentType", "ExternalID", "ActionType", "ActionText", "ActionTypeID", "ActionDate", "InactiveDate", "GuestViewable", "PMSCreatorCode", "DatePMSCommentCreated", "DateInserted", "LastUpdated", "Checksum", "IsDirty", "CommentTitle", "CRMSourceActionType", "RecordStatus", "CommentClass", "ResortID" };
 
-            new DataFlowTask<PMS_ActionComments>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+            new DataFlowTask<PMS_ActionComments>() { TaskName = "Move ActionComments" }.runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
         }
 
         public static void DFT_MoveAddress()
@@ -125,7 +125,7 @@ namespace ETLBoxDemo.src.Manager
             var primaryKeys = new List<string>() { "PK_Address" };
             var properties = new List<string>() { "PK_Address", "FK_Profiles", "AddressTypeCode", "SourceAddressType", "RecordStatus", "AddressStatus", "Attn", "Address1", "Address2", "City", "StateProvince", "PostalCode", "CountryCode", "DateInserted", "LastUpdated", "Checksum", "IsDirty", "IsPrimary", "AddressCleansed", "AddressLanguage" };
 
-            new DataFlowTask<PMS_Address>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+            new DataFlowTask<PMS_Address>() { TaskName= "Move Address" }.runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
         }
 
         public static void DFT_MoveSpecialRequests_Omni()
@@ -138,7 +138,7 @@ namespace ETLBoxDemo.src.Manager
             var properties = new List<string>() {"PK_SpecialRequests", "FK_Reservations", "FK_Profiles", "ExternalRPH", "RequestType", "RequestCode", "RequestComments",
                                                   "ResortField", "ActionTypeCode", "SourceActionType", "CRMSourceActionType", "InactiveDate", "DateInserted", "LastUpdated", "Checksum", "IsDirty", "Quantity" };
 
-            new DataFlowTask<PMS_SpecialRequests>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+            new DataFlowTask<PMS_SpecialRequests>() { TaskName= "Move SpecialRequests for Omni" }.runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
         }
 
         public static void DFT_MoveUpdatedProfilesIntoTempTable()
@@ -150,7 +150,7 @@ namespace ETLBoxDemo.src.Manager
             var primaryKeys = new List<string>() { "PK_SpecialRequests" };
             var properties = new List<string>() { "PK_SpecialRequests", "FK_Profiles", "RequestType", "RequestCode", "RequestComments" };
 
-            new DataFlowTask<CENRES_SpecialRequests>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+            new DataFlowTask<CENRES_SpecialRequests>() { TaskName= "Move UpdatedProfiles Into TempTable" }.runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
         }
 
         public static void DFT_MoveSpecialRequests()
@@ -162,7 +162,7 @@ namespace ETLBoxDemo.src.Manager
             var primaryKeys = new List<string>() { "PK_SpecialRequests" };
             var properties = new List<string>() { "PK_SpecialRequests", "FK_Profiles", "RequestType", "RequestCode", "RequestComments" };
 
-            new DataFlowTask<CENRES_SpecialRequests>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+            new DataFlowTask<CENRES_SpecialRequests>() { TaskName= "Move SpecialRequests" }.runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
         }
 
         public static void DFT_InsertOrUpdateD_CustomerWithoutMembership()
@@ -202,7 +202,7 @@ namespace ETLBoxDemo.src.Manager
             //lMapping.Add("Nationality", "Nationality");
 
             var properties = new List<string>() { "PK_Profiles", "PropertyCode", "SourceGuestID", "FirstName", "MiddleName", "LastName", "Salutation", "ShortTitle", "GenderCode", "Company", "CompanyTitle", "JobTitle", "Languages", "SourceID", "DedupeCheck", "DatePMSProfileUpdated", "AllowEMail", "AllowMail", "AllowSMS", "AllowPhone", "ExternalProfileID2", "VIPID", "VIPCode", "Nationality" };
-            new DataFlowTask<D_Customer, D_Customer, D_Customer>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "PK_Profiles" }, properties);
+            new DataFlowTask<D_Customer, D_Customer, D_Customer>() { TaskName= "Insert Or Update D_Customer Without Membership" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "PK_Profiles" }, properties);
          }
         
         public static void DFT_InsertOrUpdateD_CustomerWithoutMembershipColumnUpdate()
@@ -242,7 +242,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("Nationality", "Nationality");
 
             var properties = new List<string>() { "PK_Profiles", "SourceGuestID", "FirstName", "MiddleName", "LastName", "Salutation", "ShortTitle", "GenderCode", "Company", "CompanyTitle", "JobTitle", "Languages", "SourceID", "DedupeCheck", "DatePMSProfileUpdated", "AllowEMail", "AllowMail", "AllowSMS", "AllowPhone", "ExternalProfileID2", "VIPID", "VIPCode", "Nationality" };
-            new DataFlowTask<D_Customer, D_Customer, D_Customer>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" }, properties);
+            new DataFlowTask<D_Customer, D_Customer, D_Customer>() { TaskName= "Insert Or Update D_Customer Without Membership Column Update" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" }, properties);
         }
         
 
@@ -284,7 +284,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("Membership", "Membership");
 
             var properties = new List<string>() { "PK_Profiles", "PropertyCode", "SourceGuestID", "FirstName", "MiddleName", "LastName", "Salutation", "ShortTitle", "GenderCode", "Company", "CompanyTitle", "JobTitle", "Languages", "SourceID", "DedupeCheck", "DatePMSProfileUpdated", "AllowEMail", "AllowMail", "AllowSMS", "AllowPhone", "ExternalProfileID2", "VIPID", "VIPCode", "Nationality", "Membership" };
-            new DataFlowTask<D_Customer, D_Customer, D_Customer>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" }, properties);
+            new DataFlowTask<D_Customer, D_Customer, D_Customer>() { TaskName= "Insert Or Update D_Customer With Membership Column Update" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" }, properties);
         }
         
         public static void DFT_UpdatePropertyCode()
@@ -300,7 +300,7 @@ namespace ETLBoxDemo.src.Manager
             keys.Add("CendynPropertyId", "CendynPropertyID");
             var lMapping = new Dictionary<string, string>();
             lMapping.Add("PropertyCode", "PropertyCode");
-            new DataFlowTask<D_Customer, D_Customer, D_Property>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "PK_Profiles" }, new List<string>() { "PropertyCode" });
+            new DataFlowTask<D_Customer, D_Customer, D_Property>() { TaskName= "Update PropertyCode" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "PK_Profiles" }, new List<string>() { "PropertyCode" });
 
         }
 
@@ -318,7 +318,7 @@ namespace ETLBoxDemo.src.Manager
                                                     "FK_CompanyProfile", "AllowMail", "AllowEMail", "GuestPriv", "AllowPhone", "AllowSMS", "AllowHistory", "AllowMarketResearch", "AllowThirdParty", "PMSCreatorCode",
                                                     "PMSLastUpdaterCode", "DatePMSProfileCreated", "DatePMSProfileUpdated", "DateInserted", "LastUpdated", "Checksum", "IsDirty", "ImportSource", "ImportSourceID", "ARNumber", "SourceXML", "ResortID", "ExternalProfileID2", "Nationality" };
 
-            new DataFlowTask<PMS_Profiles>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+            new DataFlowTask<PMS_Profiles>() { TaskName= "Move Profiles To PMS_Profiles And PMS_PROFILE_MAPPING" }.runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
         }
 
         public static void DFT_MoveProfiles_ExtToPMS_Profiles_Ext()
@@ -331,7 +331,7 @@ namespace ETLBoxDemo.src.Manager
             var properties = new List<string>() { "PK_ProfilesExt", "FK_Profiles", "RecordStatus", "PriorityCode", "RoomsPotential", "SalesScope", "ScopeCity", "ActionCode", "BusinessSegment",
                                                     "AccountType", "SalesSource", "IndustryCode", "CompetitionCode", "InfluenceCode", "DateInserted", "LastUpdated", "Checksum",
                                                     "IsDirty", "Salutation2", "FirstName2", "LastName2", "FamiliarName2", "CompanyName2", "PrimaryLanguage2", "Blacklist", "BlacklistMessage", "AnonymizationStatus" };
-            new DataFlowTask<PMS_Profiles_Ext>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+            new DataFlowTask<PMS_Profiles_Ext>() { TaskName= "Move Profiles_Ext To PMS_Profiles_Ext" }.runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
 
         }
 
@@ -348,7 +348,7 @@ namespace ETLBoxDemo.src.Manager
             keys.Add("PK_Profiles", "PK_Profiles");
             var lMapping = new Dictionary<string, string>();
             lMapping.Add("DOB", "DOB");
-            new DataFlowTask<D_Customer_Profile, D_Customer_Profile, D_Customer>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" }, new List<string>() { "DOB"});
+            new DataFlowTask<D_Customer_Profile, D_Customer_Profile, D_Customer>() { TaskName= "Move Birthday" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" }, new List<string>() { "DOB"});
         }
 
 
@@ -365,7 +365,7 @@ namespace ETLBoxDemo.src.Manager
             keys.Add("FK_Internal", "PK_Profiles");
             var lMapping = new Dictionary<string, string>();
             lMapping.Add("Anniversary", "Anniversary");
-            new DataFlowTask<D_Customer_Profile, D_Customer_Profile, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID" }, new List<string>() { "Anniversary" });
+            new DataFlowTask<D_Customer_Profile, D_Customer_Profile, UDFData>() { TaskName = "Move Anniversary Into D_Customer_Profile" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID" }, new List<string>() { "Anniversary" });
         }
 
         public static void DFT_MoveSpouseBirthDateIntoD_Customer_Profile()
@@ -381,7 +381,7 @@ namespace ETLBoxDemo.src.Manager
             keys.Add("FK_Internal", "PK_Profiles");
             var lMapping = new Dictionary<string, string>();
             lMapping.Add("SpouseBirthDate", "SpouseBirthDate");
-            new DataFlowTask<D_Customer_Profile, D_Customer_Profile, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID" }, new List<string>() { "SpouseBirthDate" });
+            new DataFlowTask<D_Customer_Profile, D_Customer_Profile, UDFData>() { TaskName = "Move SpouseBirthDate Into D_Customer_Profile" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID" }, new List<string>() { "SpouseBirthDate" });
         }
 
         public static void DFT_UpdatePreferredLanguageUnderPMS_Profiles()
@@ -393,7 +393,7 @@ namespace ETLBoxDemo.src.Manager
             var primaryKeys = new List<string>() { "PK_Profiles" };
             var properties = new List<string>() { "PK_Profiles", "PrimaryLanguage" };
 
-            new DataFlowTask<PMS_Profiles>().runTask(sourceCon, destinationCon, tableName, sql, true, false, primaryKeys, properties);
+            new DataFlowTask<PMS_Profiles>() { TaskName = "Update PreferredLanguage Under PMS_Profiles" }.runTask(sourceCon, destinationCon, tableName, sql, true, false, primaryKeys, properties);
         }
 
         public static void DFT_RemoveInactiveEmailRecords()
@@ -405,7 +405,7 @@ namespace ETLBoxDemo.src.Manager
             var primaryKeys = new List<string>() { "FK_Profiles" };
             var properties = new List<string>() { "FK_Profiles", "EmailStatus", "Email" };
 
-            new DataFlowTask<D_Customer>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+            new DataFlowTask<D_Customer>() { TaskName = "Remove Inactive Email Records" }.runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
         }
 
         //CHeck AddressType and AddressTypeCode
@@ -436,7 +436,7 @@ namespace ETLBoxDemo.src.Manager
             //lMapping.Add("AddressStatus", "AddressStatus");
             var properties = new List<string>() { "CustomerID", "Address1", "AddressType", "Address2", "City", "StateProvinceCode", "ZipCode", "CountryCode", "DivisionCode", "RegionCode", "ZipCodePlus4", "DedupeCheck", "AddressStatus" };
 
-            new DataFlowTask<D_Customer, D_Customer, PMS_Profile_Mapping>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" }, properties);
+            new DataFlowTask<D_Customer, D_Customer, PMS_Profile_Mapping>() { TaskName = "Update D_Customer For Address" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" }, properties);
 
         }
 
@@ -454,7 +454,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("GlobalCustomerID", "CustomerID");
             var properties = new List<string>() { "EmailStatus", "EmailHash", "Email", "EmailDomainHash" };
 
-            new DataFlowTask<D_Customer, D_Customer, PMS_Profile_Mapping>().runTask(sourceCon, destinationCon, destinationCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" }, properties);
+            new DataFlowTask<D_Customer, D_Customer, PMS_Profile_Mapping>() { TaskName = "Update Email Under D_Customer" }.runTask(sourceCon, destinationCon, destinationCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" }, properties);
 
         }
 
@@ -472,7 +472,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("GlobalCustomerID", "CustomerID");
             var properties = new List<string>() { "PhoneNumber", "CellPhoneNumber", "HomePhoneNumber", "FaxNumber", "BusinessPhoneNumber"};
 
-            new DataFlowTask<D_Customer, D_Customer, PMS_Profile_Mapping>().runTask(sourceCon, destinationCon, destinationCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" }, properties);
+            new DataFlowTask<D_Customer, D_Customer, PMS_Profile_Mapping>() { TaskName = "Update PhoneNumbers Under D_Customer" }.runTask(sourceCon, destinationCon, destinationCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" }, properties);
         }
 
         public static void DFT_UpdatePhoneExtUnderD_Customer()
@@ -489,7 +489,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("GlobalCustomerID", "CustomerID");
             var properties = new List<string>() { "CustomerID", "PhoneExtention"};
 
-            new DataFlowTask<D_Customer, D_Customer, PMS_Profile_Mapping>().runTask(sourceCon, destinationCon, destinationCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" }, properties);
+            new DataFlowTask<D_Customer, D_Customer, PMS_Profile_Mapping>() { TaskName = "Update PhoneExt Under D_Customer" }.runTask(sourceCon, destinationCon, destinationCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" }, properties);
         }
 
         public static void DFT_UpdateEmailAndPhoneUnderD_Customer()
@@ -506,7 +506,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("GlobalCustomerID", "CustomerID");
             var properties = new List<string>() { "EmailStatus", "EmailHash", "Email", "EmailDomainHash", "PhoneNumber", "CellPhoneNumber", "HomePhoneNumber", "FaxNumber", "BusinessPhoneNumber", "DedupeCheck" };
 
-            new DataFlowTask<D_Customer, D_Customer, PMS_Profile_Mapping>().runTask(sourceCon, destinationCon, destinationCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" }, properties);
+            new DataFlowTask<D_Customer, D_Customer, PMS_Profile_Mapping>() { TaskName = "Update Email And Phone Under D_Customer" }.runTask(sourceCon, destinationCon, destinationCon, tableName, sql, lsql, keys, lMapping, null, true, false, new List<string>() { "CustomerID" }, properties);
         }
 
         public static void DFT_UpdateD_Customer_Email()
@@ -523,7 +523,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("GlobalCustomerID", "CustomerID");
             var properties = new List<string>() { "EmailType", "Email", "EmailStatus" };
 
-            new DataFlowTask<D_Customer_Email, D_Customer_Email, PMS_Profile_Mapping>().runTask(sourceCon, destinationCon, destinationCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "PK_ContactMethod" }, properties);
+            new DataFlowTask<D_Customer_Email, D_Customer_Email, PMS_Profile_Mapping>() { TaskName = "Update D_Customer_Email" }.runTask(sourceCon, destinationCon, destinationCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "PK_ContactMethod" }, properties);
         }
 
         public static void DFT_UpSertDataIntoD_Customer_Email()
@@ -535,7 +535,7 @@ namespace ETLBoxDemo.src.Manager
             var primaryKeys = new List<string>() { "CustomerID", "EmailType" };
             var properties = new List<string>() { "CustomerID", "EmailType", "EmailStatus", "Email", "EmailDomainHash", "email_id" };
 
-            new DataFlowTask<D_Customer_Email>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+            new DataFlowTask<D_Customer_Email>() { TaskName = "UpSert Data Into D_Customer_Email" }.runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
         }
 
         public static void DFT_MoveEmailListTypeOfData()
@@ -554,7 +554,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move EmailList Type Of Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveUDF31TypeOfData()
@@ -573,7 +573,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move UDF31 Type Of Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveKanaLastName()
@@ -592,7 +592,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move KanaLastName" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveKanaFirstName()
@@ -611,7 +611,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move KanaFirstName" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveNKanaLastName()
@@ -630,7 +630,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move NKanaLastName" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveNKanaFirstName()
@@ -649,7 +649,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move NKanaFirstName" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveNKanaName()
@@ -668,7 +668,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move NKanaName" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveUDFC37TypeOfData()
@@ -687,7 +687,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move UDFC37 Type Of Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveAlways_Email_DolioData()
@@ -706,7 +706,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move Always_Email_Dolio Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveGHA_EmailData()
@@ -725,7 +725,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move GHA_Email Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveHotel_Offer_EmailData()
@@ -744,7 +744,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move Hotel_Offer_Email Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveMarketing_EmailData()
@@ -763,7 +763,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move Marketing_Email Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveMarketing_PrintData()
@@ -782,7 +782,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move Marketing_Print Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveMokara_EmailData()
@@ -801,7 +801,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move Mokara_Email Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveNew_Card_RequestData()
@@ -820,7 +820,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move New_Card_Request Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveNewsLetter_EmailData()
@@ -839,7 +839,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move News Letter_Email Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveSG_Account_SummaryData()
@@ -858,7 +858,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move SG_Account_Summary Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveTransaction_EmailData()
@@ -877,7 +877,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move Transaction_Email Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveSG_EmailData()
@@ -896,7 +896,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move SG_Email Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveUDFData()
@@ -908,7 +908,7 @@ namespace ETLBoxDemo.src.Manager
             var primaryKeys = new List<string>() { "PK_UDFData" };
             var properties = new List<string>() { "PK_UDFData", "RecordStatus", "CendynPropertyID", "FK_Internal", "ModuleName", "TableName", "ColumnName", "UDFValue", "DateInserted", "LastUpdated", "Checksum", "IsDirty"};
 
-            new DataFlowTask<PMS_UDFData>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+            new DataFlowTask<PMS_UDFData>() { TaskName = "Move UDF Data" }.runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
         }
 
         public static void DFT_MoveSalesRepUDFData()
@@ -927,7 +927,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move SalesRep UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveEstrateUDFData()
@@ -946,7 +946,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move Estrate UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveDepartUDFData()
@@ -965,7 +965,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move Depart UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveArrivalUDFData()
@@ -984,7 +984,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move Arrival UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveBlockRefUDFData()
@@ -1003,7 +1003,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move BlockRef UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveMarketSegmentUDFData()
@@ -1022,7 +1022,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move MarketSegment UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveMarketSubSegmentUDFData()
@@ -1041,7 +1041,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move MarketSubSegment UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveSourceUDFData()
@@ -1060,7 +1060,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move Source UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveNotesUDFData()
@@ -1079,7 +1079,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move Notes UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveBannedUDFData()
@@ -1098,7 +1098,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move Banned UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveAddress3UDFData()
@@ -1117,7 +1117,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move Address3 UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveAlternateUDFData()
@@ -1136,7 +1136,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move Alternate UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         
@@ -1148,7 +1148,7 @@ namespace ETLBoxDemo.src.Manager
             var sql = string.Format(PMSDBManager.SQL_GetDataFromAddressToUpdateCompanyName, CompanySettings.StartDate, CompanySettings.EndDate);
             var primaryKeys = new List<string>() { "PK_Profiles" };
             var properties = new List<string>() { "PK_Profiles","Company" };
-            new DataFlowTask<D_Customer>().runTask(sourceCon, destinationCon, tableName, sql, true, false, primaryKeys, properties);
+            new DataFlowTask<D_Customer>() { TaskName = "Update CompanyName From ContactMethod" }.runTask(sourceCon, destinationCon, tableName, sql, true, false, primaryKeys, properties);
         }
         
         public static void DFT_MoveCNotesUDFData()
@@ -1167,7 +1167,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move CNotes UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveCount_CancelUDFData()
@@ -1186,7 +1186,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move Count_Cancel UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveCount_NoshowUDFData()
@@ -1205,7 +1205,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move Count_Noshow UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveCount_ResosUDFData()
@@ -1224,7 +1224,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move Count_Resos UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveCustcodesUDFData()
@@ -1243,7 +1243,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move Custcodes UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveBAPExpirationUDFData()
@@ -1262,7 +1262,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move BAPExpiration UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveChildMembershipUDFData()
@@ -1281,7 +1281,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move ChildMembership UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveCommentUDFData()
@@ -1300,7 +1300,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move Comment UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveCreatedOnlineUDFData()
@@ -1319,7 +1319,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move CreatedOnline UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveCustomerCodeUDFData()
@@ -1338,7 +1338,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move CustomerCode UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveHasOnlineProfileUDFData()
@@ -1357,7 +1357,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move HasOnlineProfile UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveLastOnlineOrderDateUDFData()
@@ -1376,7 +1376,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move LastOnlineOrderDate UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveLastOnlineOrderNumberUDFData()
@@ -1395,7 +1395,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move LastOnlineOrderNumber UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveOmniPassBarcodeUDFData()
@@ -1414,7 +1414,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move OmniPassBarcode UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveOmniPassIDUDFData()
@@ -1433,7 +1433,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move OmniPassID UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveOnlineCustomerNumberUDFData()
@@ -1452,7 +1452,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move OnlineCustomerNumber UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveProductDeliveryUDFData()
@@ -1471,7 +1471,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move ProductDelivery UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MovePROF_COD_5UDFData()
@@ -1490,7 +1490,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move PROF_COD_5 UDF Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveUDFC20TypeOfData()
@@ -1509,7 +1509,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move UDFC20 Type Of Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveUDFC22TypeOfData()
@@ -1528,7 +1528,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move UDFC22 Type Of Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveUDFC23TypeOfData()
@@ -1547,7 +1547,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move UDFC23 Type Of Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
 
         public static void DFT_MoveUDFC33TypeOfData()
@@ -1566,7 +1566,7 @@ namespace ETLBoxDemo.src.Manager
             lMapping.Add("UDFValue", "UDFFieldValue");
             var properties = new List<string>() { "UDFFieldName", "UDFFieldValue" };
 
-            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>().runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
+            new DataFlowTask<D_Customer_UDFFields, D_Customer_UDFFields, UDFData>() { TaskName = "Move UDFC33 Type Of Data" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "CustomerID", "UDFFieldName" }, properties);
         }
         
         public static void DFT_MoveEmailsFromD_CustomerToD_Customer_Email_NonRosewood()
@@ -1578,7 +1578,7 @@ namespace ETLBoxDemo.src.Manager
             var primaryKeys = new List<string>() { "CustomerID", "EmailType" };
             var properties = new List<string>() { "CustomerID", "EmailType", "EmailStatus", "Email", "EmailDomainHash", "email_id" };
 
-            new DataFlowTask<D_Customer_Email>().runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
+            new DataFlowTask<D_Customer_Email>() { TaskName = "Move Emails From D_Customer To D_Customer_Email_NonRosewood" }.runTask(sourceCon, destinationCon, tableName, sql, true, true, primaryKeys, properties);
         }
         
         public static void DFT_UpdateRecordStatusUnderPMS_Profiles()
@@ -1590,7 +1590,7 @@ namespace ETLBoxDemo.src.Manager
             var primaryKeys = new List<string>() { "PK_Profiles" };
             var properties = new List<string>() { "PK_Profiles", "RecordStatus"};
 
-            new DataFlowTask<PMS_Profiles>().runTask(sourceCon, destinationCon, tableName, sql, true, false, primaryKeys, properties);
+            new DataFlowTask<PMS_Profiles>() { TaskName = "Update RecordStatus Under PMS_Profiles" }.runTask(sourceCon, destinationCon, tableName, sql, true, false, primaryKeys, properties);
         }
         
         public static void DFT_UpdateRecordStatusUnderD_Customer()
@@ -1602,7 +1602,7 @@ namespace ETLBoxDemo.src.Manager
             var primaryKeys = new List<string>() { "PK_Profiles" };
             var properties = new List<string>() { "PK_Profiles", "RecordStatus" };
 
-            new DataFlowTask<D_Customer>().runTask(sourceCon, destinationCon, tableName, sql, true, false, primaryKeys, properties);
+            new DataFlowTask<D_Customer>() { TaskName = "Update RecordStatus Under D_Customer" }.runTask(sourceCon, destinationCon, tableName, sql, true, false, primaryKeys, properties);
         }
 
 
