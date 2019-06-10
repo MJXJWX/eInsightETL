@@ -51,13 +51,14 @@ namespace ETLBoxDemo.Handler
            
             try
             {
-                //ControlFlow.CurrentDbConnection = new SqlConnectionManager(new ConnectionString("data source=localhost;initial catalog=eInsightCRM_AMResorts_QA;uid=sa;pwd=123456;MultipleActiveResultSets=True"));
-                //CreateLogTablesTask.CreateLog();
-                //StartLoadProcessTask.Start("Process 1", "Start Message 1", "ETL");
+                string eContactLogConnectionString = System.Configuration.ConfigurationManager.AppSettings["econtact-log-db-sql"];
+                ControlFlow.CurrentDbConnection = new SqlConnectionManager(new ConnectionString(eContactLogConnectionString));
+                CreateLogTablesTask.CreateLog();
+                StartLoadProcessTask.Start("Process 1", "Start Message 1", "ETL");
                 var settings = JsonConvert.DeserializeObject<Dictionary<string, object>>(request);
                 ControlFlow.STAGE = "0";
                 eContactDBManager.GetCompanySetting(settings);
-                //ControlFlow.SetLoggingDatabase(new SqlConnectionManager(new ConnectionString("data source=localhost;initial catalog=eInsightCRM_AMResorts_QA;uid=sa;pwd=123456;MultipleActiveResultSets=True")));
+                ControlFlow.SetLoggingDatabase(new SqlConnectionManager(eContactLogConnectionString));
 
                 //Customer 
                 CustomerTask CT = new CustomerTask();
