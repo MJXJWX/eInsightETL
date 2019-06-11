@@ -174,6 +174,8 @@ namespace ETLBoxDemo.src.Manager
             var sql = PMSDBManager.SQL_GetDataFromProfiles;
             var lsql = CRMDBManager.SQL_GetDataFromETL_TEMP_PROFILES_D_CUSTOMER_Insert;
 
+            var cData = PMSDBManager.GetData(PMSDBManager.SQL_GetDataFromProfiles);
+
             var keys = new Dictionary<string, string>();
             keys.Add("PK_Profiles", "PK_Profiles");
             var lMapping = new Dictionary<string, string>();
@@ -202,7 +204,8 @@ namespace ETLBoxDemo.src.Manager
             //lMapping.Add("Nationality", "Nationality");
 
             var properties = new List<string>() { "PK_Profiles", "PropertyCode", "SourceGuestID", "FirstName", "MiddleName", "LastName", "Salutation", "ShortTitle", "GenderCode", "Company", "CompanyTitle", "JobTitle", "Languages", "SourceID", "DedupeCheck", "DatePMSProfileUpdated", "AllowEMail", "AllowMail", "AllowSMS", "AllowPhone", "ExternalProfileID2", "VIPID", "VIPCode", "Nationality" };
-            new DataFlowTask<D_Customer, D_Customer, D_Customer>() { TaskName= "Insert Or Update D_Customer Without Membership" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "PK_Profiles" }, properties);
+            //new DataFlowTask<D_Customer, D_Customer, D_Customer>() { TaskName= "Insert Or Update D_Customer Without Membership" }.runTask(sourceCon, destinationCon, lookUpCon, tableName, sql, lsql, keys, lMapping, null, true, true, new List<string>() { "PK_Profiles" }, properties);
+            CRMDBManager.UpsertData(cData, tableName, new List<string>() { "PK_Profiles" }, properties, lsql, keys, lMapping);
          }
         
         public static void DFT_InsertOrUpdateD_CustomerWithoutMembershipColumnUpdate()

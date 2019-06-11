@@ -5,6 +5,8 @@ using ETLBox.src.Toolbox.Database;
 using ETLBoxDemo.Common;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.Text;
 
 namespace ETLBoxDemo.src.Manager
@@ -967,6 +969,13 @@ namespace ETLBoxDemo.src.Manager
         public static void TruncateTable(params string[] tableNames)
         {
             SQLHelper.TruncateTable(GetPMSConnectionString(), "TruncateETLPMSTEMPTable: " + string.Join(", ", tableNames), tableNames);
+        }
+
+        public static DataTable GetData(string cmmd)
+        {
+            DataTable data = new DataTable();
+            new SqlDataAdapter(cmmd, GetPMSConnectionString()).Fill(data);
+            return data;
         }
 
     }

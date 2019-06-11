@@ -3,6 +3,8 @@ using ETLBox.src.Toolbox.Database;
 using ETLBoxDemo.Common;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 
@@ -2030,6 +2032,91 @@ WHERE FieldName = 'Ratetype'
         public static void UpdateAddressTypeCodeUnderPMS_Address()
         {
             SQLHelper.InsertOrUpdateDbValue(GetCRMConnectionString(), "SQL_UpdatePMS_Address", SQL_UpdatePMS_Address, null);
+        }
+        
+        public static void BulkInsertTempTable(DataTable data, string tableName, SqlConnection conn)
+        {
+            using (SqlBulkCopy bulkCopy = new SqlBulkCopy(conn, SqlBulkCopyOptions.TableLock, null))
+            {
+                bulkCopy.BulkCopyTimeout = 0;
+                bulkCopy.DestinationTableName = tableName;
+                for (int i = 0; i < data.Columns.Count; i++)
+                {
+                    bulkCopy.ColumnMappings.Add(data.Columns[i].ColumnName, data.Columns[i].ColumnName);
+                }
+                bulkCopy.WriteToServer(data);
+            }
+
+        }
+
+        public static void UpsertData(DataTable data, string tableName, List<string> keys, List<string> updateFields, string lookUpSql = "", Dictionary<string, string> lKeys = null, Dictionary<string, string> lMappings = null)
+        {
+            try
+            {
+                var conn = new SqlConnection(GetCRMConnectionString());
+                conn.Open();
+
+            StringBuilder columns = new StringBuilder();
+            for (int i = 0; i < data.Columns.Count; i++)
+            {
+                if (columns.Length > 0)
+                    columns.Append(", ");
+                columns.Append($"{data.Columns[i].ColumnName} {(data.Columns[i].DataType.Name == "Guid" ? "uniqueidentifier" : "nvarchar(2000)")}");
+            }
+            var createTempTableCommand = $"Create Table #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)} ({columns.ToString()})";
+
+            //Execute the command to make a temp table
+            SqlCommand cmd = new SqlCommand(createTempTableCommand, conn);
+            cmd.ExecuteNonQuery();
+            
+            BulkInsertTempTable(data, $"#temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)}", conn);
+
+            var insertKeys = new List<string>();
+            updateFields.ForEach(f => {
+                if (!insertKeys.Contains(f))
+                    insertKeys.Add(f);
+            });
+
+            keys.ForEach(k => {
+                if (updateFields.Contains(k))
+                    updateFields.Remove(k);
+                if (!insertKeys.Contains(k))
+                    insertKeys.Add(k);
+            });
+
+            StringBuilder mergeJoin = new StringBuilder();
+            if (!string.IsNullOrEmpty(lookUpSql) && lMappings != null && lMappings.Count > 0)
+            {
+                List<string> tkeys = new List<string>();
+                foreach (var key in lKeys.Keys)
+                {
+                    tkeys.Add($" L.{key} = T.{lKeys[key]} ");
+                    //lMappings.TryAdd(key, lKeys[key]); 
+                }
+
+                List<string> tMaps = new List<string>();
+                foreach (var key in lMappings.Keys)
+                {
+                    tMaps.Add($" LT.{key} as {lKeys[key]} ");
+                }
+
+                mergeJoin.Append($" as T Inner join ( SELECT {string.Join(" ,", tMaps)} FROM ( {lookUpSql} ) LT ) as L ON {string.Join(" AND ", tkeys)} ");
+            }
+
+            //use the merge command to upsert from the temp table to the destination table
+            string mergeSql = $"merge into {tableName} as Target  using (Select * from #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)} {mergeJoin.ToString()}) as Source  on  {string.Join(" AND ", keys.ConvertAll(k => k = $"Target.{k} = Source.{k} "))} when matched then update set {string.Join(" , ", updateFields.ConvertAll(c => c = $"Target.{c} = Source.{c}"))} when not matched then insert ({string.Join(",", updateFields)}) values (Source.{string.Join(", Source.", updateFields)});";
+
+            cmd.CommandText = mergeSql;
+            var rowsAffected = cmd.ExecuteNonQuery();
+
+            //Clean up the temp table
+            cmd.CommandText = $"drop table #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)};";
+            cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+
+            }
         }
     }
 }
