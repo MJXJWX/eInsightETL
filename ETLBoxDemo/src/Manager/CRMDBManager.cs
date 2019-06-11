@@ -1,4 +1,5 @@
 ﻿using ALE.ETLBox;
+using ALE.ETLBox.Logging;
 using ETLBox.src.Toolbox.Database;
 using ETLBoxDemo.Common;
 using System;
@@ -2053,6 +2054,11 @@ WHERE FieldName = 'Ratetype'
         {
             try
             {
+                var logger = new LogTask()
+                {
+                    Message = "Data Flow Task: Upsert Data",
+                    ActionType = "Start"
+                };
                 var conn = new SqlConnection(GetCRMConnectionString());
                 conn.Open();
 
@@ -2112,6 +2118,8 @@ WHERE FieldName = 'Ratetype'
             //Clean up the temp table
             cmd.CommandText = $"drop table #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)};";
             cmd.ExecuteNonQuery();
+                logger.ActionType = "END";
+                logger.Info();
             }
             catch (Exception ex)
             {

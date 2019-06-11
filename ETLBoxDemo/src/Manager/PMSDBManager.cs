@@ -1,6 +1,7 @@
 ﻿using ALE.ETLBox;
 using ALE.ETLBox.ConnectionManager;
 using ALE.ETLBox.ControlFlow;
+using ALE.ETLBox.Logging;
 using ETLBox.src.Toolbox.Database;
 using ETLBoxDemo.Common;
 using System;
@@ -973,8 +974,17 @@ namespace ETLBoxDemo.src.Manager
 
         public static DataTable GetData(string cmmd)
         {
+            var logger = new LogTask()
+            {
+                Message = "Data Flow Task: Get Data Table",
+                ActionType = "Start"
+            };
+            logger.Info();
+            ControlFlow.STAGE = (int.Parse(ControlFlow.STAGE) + 1) + "";
             DataTable data = new DataTable();
             new SqlDataAdapter(cmmd, GetPMSConnectionString()).Fill(data);
+            logger.ActionType = "END";
+            logger.Info();
             return data;
         }
 
