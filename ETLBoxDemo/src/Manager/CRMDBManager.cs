@@ -2118,6 +2118,7 @@ WHERE FieldName = 'Ratetype'
             //Clean up the temp table
             cmd.CommandText = $"drop table #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)};";
             cmd.ExecuteNonQuery();
+                logger.Message += ", Rows Affected: "+ rowsAffected;
                 logger.ActionType = "END";
                 logger.Info();
             }
