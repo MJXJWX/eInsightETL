@@ -2059,6 +2059,7 @@ WHERE FieldName = 'Ratetype'
                     Message = "Data Flow Task: Upsert Data",
                     ActionType = "Start"
                 };
+                logger.Info();
                 var conn = new SqlConnection(GetCRMConnectionString());
                 conn.Open();
 
