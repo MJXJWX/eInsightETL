@@ -247,9 +247,10 @@ namespace ETLBoxDemo.src.Utility
             DBSource<T> dBSource = new DBSource<T>()
             {
                 Sql = sql,
-                ConnString = sConnString
+                ConnString = sConnString,
+                TaskName = "Get Source Data"
             };
-            DBSource<L> lSource = new DBSource<L>(lookupSql) { ConnString = lConnString };
+            DBSource<L> lSource = new DBSource<L>(lookupSql) { ConnString = lConnString, TaskName = "Get Look Up Data" };
 
             LookupKey lookupkey = new LookupKey(lookupKey, lookupMapping);
             Lookup<T, T, L> lookup = new Lookup<T, T, L>(

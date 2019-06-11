@@ -23,7 +23,7 @@ namespace ALE.ETLBox.DataFlow {
     public class DBSource<TOutput> : GenericTask, ITask, IDataFlowSource<TOutput> {
         /* ITask Interface */
         public override string TaskType { get; set; } = "DF_DBSOURCE";
-        public override string TaskName => $"Dataflow: Read DB data from {SourceDescription}";
+        public override string TaskName => base.TaskName == "N/A" ? $"Dataflow: Read DB data from {SourceDescription}" : base.TaskName;
         public override void Execute() => ExecuteAsync();
 
         /* Public Properties */

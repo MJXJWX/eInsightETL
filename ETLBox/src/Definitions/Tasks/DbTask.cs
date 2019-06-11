@@ -178,7 +178,7 @@ namespace ALE.ETLBox.ControlFlow
                         }
                         AfterRowReadAction?.Invoke();
                         InternalAfterRowReadAction?.Invoke();
-                    }
+                }
                     //else
                     //{
                     //    break;
@@ -230,7 +230,7 @@ namespace ALE.ETLBox.ControlFlow
             else
             {
                 IDataReaderEntityHelper<T> builder = null;
-                if (columnNames == null) columnNames = typeInfo.PropertyNames;
+                //if (columnNames == null) columnNames = typeInfo.PropertyNames;
                 Actions.Add(reader =>
                 {
                     builder = IDataReaderEntityHelper<T>.CreateBuilder((IDataReader)reader);
@@ -243,7 +243,7 @@ namespace ALE.ETLBox.ControlFlow
                 //    else
                 //        Actions.Add(col => { });
                 //}
-                InternalBeforeRowReadAction = () => row = (T)Activator.CreateInstance(typeof(T));
+                //InternalBeforeRowReadAction = () => row = (T)Activator.CreateInstance(typeof(T));
             }
             InternalAfterRowReadAction = () => doWithRowAction(row);
             ExecuteReader();
