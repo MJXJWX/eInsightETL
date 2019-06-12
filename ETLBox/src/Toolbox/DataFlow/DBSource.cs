@@ -144,8 +144,10 @@ namespace ALE.ETLBox.DataFlow {
         }
 
         void NLogFinish() {
+            ControlFlow.ControlFlow.STAGE = (int.Parse(ControlFlow.ControlFlow.STAGE) + 1) + "";
             if (!DisableLogging)
                 NLogger.Info(TaskName + $", {Buffer.Count}Rows queried", TaskType, "END", TaskHash, ControlFlow.ControlFlow.STAGE, ControlFlow.ControlFlow.CurrentLoadProcess?.LoadProcessKey);
+            ControlFlow.ControlFlow.STAGE = (int.Parse(ControlFlow.ControlFlow.STAGE) - 1) + "";
         }
     }
 }

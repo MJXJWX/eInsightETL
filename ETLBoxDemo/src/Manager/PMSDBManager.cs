@@ -982,8 +982,10 @@ namespace ETLBoxDemo.src.Manager
             logger.Info();
             DataTable data = new DataTable();
             new SqlDataAdapter(cmmd, GetPMSConnectionString()).Fill(data);
+            ControlFlow.STAGE = (int.Parse(ControlFlow.STAGE) + 1) + "";
             logger.ActionType = "END";
             logger.Info();
+            ControlFlow.STAGE = (int.Parse(ControlFlow.STAGE) - 1) + "";
             return data;
         }
 

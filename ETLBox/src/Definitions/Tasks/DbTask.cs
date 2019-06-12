@@ -353,9 +353,11 @@ namespace ALE.ETLBox.ControlFlow
 
         void LoggingEnd(LogType logType)
         {
+            ControlFlow.STAGE = (int.Parse(ControlFlow.STAGE) + 1) + "";
             NLogger.Info(TaskName, TaskType, "END", TaskHash, ControlFlow.STAGE, ControlFlow.CurrentLoadProcess?.LoadProcessKey);
             if (logType == LogType.Rows)
                 NLogger.Info($"Rows affected: {RowsAffected ?? 0}", TaskType, "RUN", TaskHash, ControlFlow.STAGE, ControlFlow.CurrentLoadProcess?.LoadProcessKey);
+            ControlFlow.STAGE = (int.Parse(ControlFlow.STAGE) - 1) + "";
         }
 
         void ExecuteExtension()

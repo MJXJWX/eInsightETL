@@ -71,9 +71,9 @@ namespace ETLBoxDemo.src.Utility
             dBSource.Execute();
             dBDestination.Wait();
 
-            ControlFlow.STAGE = (int.Parse(ControlFlow.STAGE) - 1) + "";
             logger.ActionType = "END";
             logger.Info();
+            ControlFlow.STAGE = (int.Parse(ControlFlow.STAGE) - 1) + "";
         }
     }
 
@@ -157,9 +157,9 @@ namespace ETLBoxDemo.src.Utility
             dBSource.Execute();
             dBDestination.Wait();
 
-            ControlFlow.STAGE = (int.Parse(ControlFlow.STAGE) - 1) + "";
             logger.ActionType = "END";
             logger.Info();
+            ControlFlow.STAGE = (int.Parse(ControlFlow.STAGE) - 1) + "";
         }
     }
 
@@ -297,9 +297,9 @@ namespace ETLBoxDemo.src.Utility
             dBSource.Execute();
             ControlFlow.CurrentDbConnection = new SqlConnectionManager(new ConnectionString(dConnString));
             dBDestination.Wait();
-            ControlFlow.STAGE = (int.Parse(ControlFlow.STAGE) - 1) + "";
             logger.ActionType = "END";
             logger.Info();
+            ControlFlow.STAGE = (int.Parse(ControlFlow.STAGE) - 1) + "";
         }
 
     }

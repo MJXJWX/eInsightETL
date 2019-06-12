@@ -1,4 +1,5 @@
 ﻿using ALE.ETLBox;
+using ALE.ETLBox.ControlFlow;
 using ALE.ETLBox.Logging;
 using ETLBox.src.Toolbox.Database;
 using ETLBoxDemo.Common;
@@ -2119,9 +2120,11 @@ WHERE FieldName = 'Ratetype'
             //Clean up the temp table
             cmd.CommandText = $"drop table #temp_{tableName.Replace("dbo.", "", StringComparison.CurrentCultureIgnoreCase)};";
             cmd.ExecuteNonQuery();
+                ControlFlow.STAGE = (int.Parse(ControlFlow.STAGE) + 1) + "";
                 logger.Message += ", Rows Affected: "+ rowsAffected;
                 logger.ActionType = "END";
                 logger.Info();
+                ControlFlow.STAGE = (int.Parse(ControlFlow.STAGE) - 1) + "";
             }
             catch (Exception ex)
             {

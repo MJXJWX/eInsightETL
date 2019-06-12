@@ -474,9 +474,9 @@ namespace ETLBoxDemo.src.Tasks
             // Insert EndTime into Log Table
             //CRMDBManager.InsertEndTimeIntoLogTable();
 
-            ControlFlow.STAGE = (int.Parse(ControlFlow.STAGE) - 1) + "";
             logger.ActionType = "END";
             logger.Info();
+            ControlFlow.STAGE = (int.Parse(ControlFlow.STAGE) - 1) + "";
         }
     }
 }
